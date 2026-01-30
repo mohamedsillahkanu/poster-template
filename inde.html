@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Poster Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600;700&family=Lato:wght@400;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { margin: 0; padding: 20px; background-color: #ffffff; font-family: 'Oswald', Arial, sans-serif; color: #000000; font-weight: 500; }
+        .page-container { width: 100%; max-width: 1400px; margin: 0 auto; }
+        .page-header { background-color: #004080; color: #ffffff; padding: 25px 30px; text-align: center; margin-bottom: 15px; border-radius: 8px 8px 0 0; }
+        .logo-row { display: flex; justify-content: center; align-items: center; gap: 30px; margin-bottom: 15px; }
+        .logo-box { background: #ffffff; border-radius: 8px; padding: 10px; display: flex; align-items: center; justify-content: center; }
+        .logo-box img { width: 100px; height: auto; border-radius: 6px; }
+        .page-header h3 { margin: 12px 0 5px; font-size: 14px; font-weight: 700; letter-spacing: 1px; color: #ffffff; }
+        .page-header .tagline { margin: 0; font-size: 10px; font-weight: 500; color: #ffffff; }
+        .page-header h1 { margin: 20px 0 10px; font-size: 24px; font-weight: 700; color: #ffffff; letter-spacing: 1px; }
+        .page-header .subtitle { font-size: 14px; color: #ffffff; font-weight: 500; }
+        .content-card { border: 4px double #004080; border-radius: 12px; padding: 12px; background-color: #ffffff; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); margin-bottom: 15px; }
+        .content-inner { padding: 25px; }
+        .section-header { background-color: #004080; color: #ffffff; padding: 15px 20px; margin-bottom: 20px; border-radius: 6px; display: flex; align-items: center; gap: 15px; }
+        .section-icon { background: #ffffff; color: #004080; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; flex-shrink: 0; }
+        .section-title { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-label { display: block; color: #004080; font-size: 12px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; }
+        .form-input, .form-select, .form-textarea { width: 100%; padding: 12px; border: 2px solid #004080; border-radius: 6px; font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 500; }
+        .form-textarea { min-height: 100px; resize: vertical; }
+        .btn { padding: 14px 24px; border: 2px solid #004080; border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Oswald', Arial, sans-serif; transition: all 0.2s; margin: 5px; }
+        .btn-primary { background: #004080; color: #ffffff; }
+        .btn-primary:hover { background: #0056b3; }
+        .btn-gold { background: #ffc107; color: #000000; border-color: #ffc107; }
+        .btn-gold:hover { background: #e0a800; }
+        .btn-success { background: #28a745; color: #ffffff; border-color: #28a745; }
+        .btn-secondary { background: #ffffff; color: #004080; }
+        .btn-secondary:hover { background: #004080; color: #fff; }
+        .btn-sm { padding: 10px 18px; font-size: 12px; }
+        .alert { padding: 1rem; border-radius: 6px; margin: 1rem 0; font-weight: 500; }
+        .alert-success { background: #d4edda; border: 2px solid #28a745; color: #155724; }
+        .alert-info { background: #e7f3ff; border: 2px solid #004080; color: #004080; }
+        .hidden { display: none !important; }
+        .config-card { background: #f8f9fa; padding: 1.5rem; border-radius: 8px; border: 2px solid #004080; margin: 1rem 0; }
+        .config-card h4 { color: #004080; margin-bottom: 1rem; font-size: 16px; font-weight: 700; }
+        
+        /* Theme Grid */
+        .theme-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 1rem 0; }
+        .theme-card { border: 3px solid #ddd; border-radius: 8px; padding: 10px; cursor: pointer; transition: all 0.2s; text-align: center; background: #fff; }
+        .theme-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .theme-card.selected { border-color: #004080; box-shadow: 0 0 0 3px rgba(0,64,128,0.3); background: #f0f7ff; }
+        .theme-preview { height: 55px; border-radius: 4px; margin-bottom: 8px; overflow: hidden; }
+        .theme-name { font-size: 12px; font-weight: 700; color: #333; margin-bottom: 2px; }
+        
+        /* Image Upload */
+        .image-upload-card { background: #fff; border: 2px dashed #004080; border-radius: 8px; padding: 15px; margin: 10px 0; }
+        .image-upload-card.has-image { border-style: solid; border-color: #28a745; background: #f8fff8; }
+        .image-upload-row { display: flex; gap: 15px; align-items: flex-start; }
+        .image-preview-container { flex-shrink: 0; width: 220px; }
+        .image-preview { width: 100%; max-height: 180px; object-fit: contain; border-radius: 4px; border: 2px solid #28a745; background: #fff; display: block; }
+        .image-details { flex: 1; }
+        .remove-btn { color: #dc3545; cursor: pointer; font-size: 12px; display: inline-block; margin-top: 8px; background: #fff; border: 1px solid #dc3545; padding: 4px 10px; border-radius: 4px; }
+        .remove-btn:hover { background: #dc3545; color: #fff; }
+        .image-number { background: #004080; color: #fff; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 700; display: inline-block; margin-bottom: 10px; }
+        
+        /* Word Count */
+        .word-count { font-size: 11px; color: #666; text-align: right; margin-top: 4px; }
+        .word-count.warning { color: #dc3545; font-weight: 600; }
+        .word-count.good { color: #28a745; }
+        
+        /* Tabs */
+        .tabs { display: flex; gap: 5px; margin-bottom: 15px; flex-wrap: wrap; }
+        .tab { padding: 10px 20px; background: #f8f9fa; border: 2px solid #004080; border-radius: 6px 6px 0 0; cursor: pointer; font-weight: 600; font-size: 13px; }
+        .tab.active { background: #004080; color: #fff; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Poster Preview Container */
+        .poster-preview-container { background: #333; padding: 20px; border-radius: 8px; margin: 1rem 0; overflow-x: auto; }
+        .poster-scale-controls { margin-bottom: 15px; }
+        .poster-scale-controls label { color: #fff; font-size: 13px; margin-right: 10px; }
+        .download-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+        
+        /* Poster Styles */
+        .poster-frame { width: 1123px; height: 794px; margin: 0 auto; transform-origin: top left; box-shadow: 0 10px 40px rgba(0,0,0,0.4); background: #fff; }
+        .poster-frame.portrait { width: 794px; height: 1123px; }
+        .poster { width: 100%; height: 100%; display: flex; flex-direction: column; font-family: var(--poster-font, 'Oswald', sans-serif); background: var(--poster-bg, #fff); color: var(--poster-text, #333); }
+        .poster-header { background: var(--poster-primary, #004080); color: var(--poster-header-text, #fff); padding: 15px 25px; text-align: center; }
+        .poster-header-content { display: flex; align-items: center; justify-content: center; gap: 20px; }
+        .poster-logo { width: 55px; height: 55px; background: #fff; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 4px; }
+        .poster-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .poster-logos { display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .poster-title { font-size: var(--title-size, 24px); font-weight: 700; margin: 8px 0; line-height: 1.2; }
+        .poster-authors { font-size: 12px; margin: 5px 0; }
+        .poster-affiliations { font-size: 10px; opacity: 0.9; }
+        .poster-body { flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; padding: 15px 20px; align-content: start; }
+        .poster-body.cols-2 { grid-template-columns: 1fr 1fr; }
+        .poster-section { background: var(--poster-section-bg, #f8f9fa); border-radius: 6px; padding: 10px; border: 2px solid var(--poster-primary, #004080); }
+        .poster-section-title { background: var(--poster-primary, #004080); color: var(--poster-header-text, #fff); padding: 6px 10px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+        .poster-section-content { font-size: var(--body-size, 10px); line-height: 1.5; }
+        .poster-section-content p { margin-bottom: 6px; }
+        .poster-section-content ul { margin: 6px 0 6px 15px; }
+        .poster-section-content li { margin-bottom: 3px; }
+        .poster-section.span-2 { grid-column: span 2; }
+        .poster-section.span-3 { grid-column: span 3; }
+        .poster-images { display: flex; flex-wrap: wrap; gap: 12px; margin: 15px 0; justify-content: center; align-items: flex-start; }
+        .poster-figure { text-align: center; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #ccc; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .poster-figure img { max-width: 250px; max-height: 180px; object-fit: contain; border-radius: 2px; display: block; }
+        .poster-figure-caption { font-size: 9px; color: #333; margin-top: 6px; font-style: italic; max-width: 250px; line-height: 1.3; }
+        .poster-footer { background: var(--poster-primary, #004080); color: var(--poster-header-text, #fff); padding: 8px 20px; text-align: center; font-size: 9px; }
+        
+        .page-footer { background-color: #004080; color: #ffffff; padding: 20px 30px; text-align: center; font-size: 13px; line-height: 1.7; font-weight: 500; border-radius: 0 0 8px 8px; }
+        
+        @media (max-width: 768px) {
+            .form-row { grid-template-columns: 1fr; }
+            .theme-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div class="page-header">
+            <div class="logo-row">
+                <div class="logo-box">
+                    <img src="https://github.com/mohamedsillahkanu/gdp-dashboard-2/raw/6c7463b0d5c3be150aafae695a4bcbbd8aeb1499/ICF-SL.jpg" alt="ICF-SL Logo">
+                </div>
+            </div>
+            <h3>Informatics Consultancy Firm-Sierra Leone<br>(ICF-SL)</h3>
+            <p class="tagline"><em>Driving Data-Driven Solutions for Health and Development</em></p>
+            <h1>RESEARCH POSTER GENERATOR</h1>
+            <p class="subtitle">Create Professional Academic Posters with Custom Themes</p>
+        </div>
+
+        <div class="content-card">
+            <div class="content-inner">
+                <div id="alertContainer"></div>
+
+                <!-- Theme Selection -->
+                <div class="section-header">
+                    <span class="section-icon">1</span>
+                    <span class="section-title">SELECT THEME</span>
+                </div>
+                <div class="theme-grid" id="themeGrid"></div>
+
+                <!-- Poster Content -->
+                <div class="section-header">
+                    <span class="section-icon">2</span>
+                    <span class="section-title">ENTER POSTER CONTENT</span>
+                </div>
+
+                <div class="tabs">
+                    <div class="tab active" onclick="showTab('header')">Header</div>
+                    <div class="tab" onclick="showTab('content')">Content</div>
+                    <div class="tab" onclick="showTab('images')">Images</div>
+                    <div class="tab" onclick="showTab('layout')">Layout</div>
+                </div>
+
+                <!-- Header Tab -->
+                <div id="tab-header" class="tab-content active">
+                    <div class="config-card">
+                        <h4>Poster Header Information</h4>
+                        <div class="form-group">
+                            <label class="form-label">Poster Title</label>
+                            <input type="text" id="posterTitle" class="form-input" value="Impact of Seasonal Malaria Chemoprevention on Under-5 Mortality in Sierra Leone" placeholder="Enter your research title">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Authors</label>
+                            <input type="text" id="posterAuthors" class="form-input" value="Mohamed S. Kanu¹, John A. Smith², Mary B. Johnson¹" placeholder="Author names">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Affiliations</label>
+                            <textarea id="posterAffiliations" class="form-textarea" rows="2">¹Informatics Consultancy Firm-Sierra Leone (ICF-SL), Freetown
+²National Malaria Control Programme, Ministry of Health, Sierra Leone</textarea>
+                        </div>
+                        <div class="config-card" style="background: #e7f3ff;">
+                            <h4>🏢 Logos (Upload as many as needed)</h4>
+                            <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Upload organization logos. They will be displayed in the header area.</p>
+                            
+                            <div id="logosContainer">
+                                <!-- Logo uploads will be added here dynamically -->
+                            </div>
+                            
+                            <button type="button" class="btn btn-primary btn-sm" onclick="addLogoUpload()" style="margin-top: 10px;">
+                                ➕ Add Logo
+                            </button>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Contact Information</label>
+                                <input type="text" id="contactInfo" class="form-input" value="Contact: m.kanu@icf-sl.org | www.icf-sl.org">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Event / Conference</label>
+                                <input type="text" id="eventName" class="form-input" value="Annual Malaria Conference 2025 | Freetown, Sierra Leone">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Tab -->
+                <div id="tab-content" class="tab-content">
+                    <div class="config-card">
+                        <h4>Section Content</h4>
+                        <p style="font-size: 11px; color: #666; margin-bottom: 15px; background: #e7f3ff; padding: 10px; border-radius: 6px;">
+                            📝 <strong>Standard Poster Guidelines (Malaria Journal, etc.):</strong> Total 300-800 words max. Less is more!<br>
+                            Introduction: 100-200 | Methods: 100-200 | Results: 150-200 + figures | Conclusions: 100-200
+                        </p>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Introduction / Background <span style="color:#888; font-weight:normal;">(100-200 words)</span></label>
+                            <textarea id="sectionIntro" class="form-textarea" placeholder="Brief background, problem statement, objectives. 3-5 bullet points.">Malaria remains a leading cause of morbidity and mortality among children under 5 years in Sierra Leone.
+
+• Over 60% of outpatient visits are malaria-related
+• Under-5 mortality rate: 122 per 1,000 live births
+• SMC targets children 3-59 months in eligible districts</textarea>
+                            <div class="word-count" id="introCount">0 words</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Methods <span style="color:#888; font-weight:normal;">(100-200 words)</span></label>
+                            <textarea id="sectionMethods" class="form-textarea" placeholder="Study design, population, data sources. Keep very brief.">Study Design: Retrospective cohort analysis using DHIS2 data (2018-2023)
+
+• Population: Children under 5 in 14 SMC-eligible districts
+• Data Sources: DHIS2, SMC campaign data, Stats SL
+• Analysis: Interrupted time series with district fixed effects</textarea>
+                            <div class="word-count" id="methodsCount">0 words</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Results <span style="color:#888; font-weight:normal;">(150-200 words + figures)</span></label>
+                            <textarea id="sectionResults" class="form-textarea" placeholder="Key findings with numbers. Let figures do the talking.">Key Findings:
+• 35% reduction in confirmed malaria cases post-SMC (p<0.001)
+• SMC coverage reached 92% in 2023 (up from 78% in 2020)
+• Under-5 malaria mortality decreased by 28% (95% CI: 22-34%)</textarea>
+                            <div class="word-count" id="resultsCount">0 words</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Conclusions <span style="color:#888; font-weight:normal;">(100-200 words)</span></label>
+                            <textarea id="sectionConclusions" class="form-textarea" placeholder="Summary of findings and recommendations.">• SMC significantly reduced malaria burden in under-5 children
+• High coverage (>85%) is critical for maximum impact
+• Sustained investment in SMC programs is cost-effective
+
+Recommendation: Scale up to remaining eligible districts</textarea>
+                            <div class="word-count" id="conclusionsCount">0 words</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Acknowledgements <span style="color:#888; font-weight:normal;">(~40 words max)</span></label>
+                            <textarea id="sectionAcknowledgements" class="form-textarea" rows="2" placeholder="Funding sources, contributors.">Supported by the Global Fund. Thanks to district health management teams.</textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">References <span style="color:#888; font-weight:normal;">(3-5 key citations only)</span></label>
+                            <textarea id="sectionReferences" class="form-textarea" rows="2" placeholder="Only the most relevant references.">1. WHO. World Malaria Report 2023.
+2. ACCESS-SMC Partnership. Lancet. 2020.</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Images Tab -->
+                <div id="tab-images" class="tab-content">
+                    <div class="config-card">
+                        <h4>📊 Results Images (Upload as many as needed)</h4>
+                        <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Upload charts, graphs, or figures for your Results section. Click "Add Another Image" to upload more.</p>
+                        
+                        <div id="imageUploadsContainer">
+                            <!-- Image uploads will be added here dynamically -->
+                        </div>
+                        
+                        <button type="button" class="btn btn-primary btn-sm" onclick="addImageUpload()" style="margin-top: 15px;">
+                            ➕ Add Another Image
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Layout Tab -->
+                <div id="tab-layout" class="tab-content">
+                    <div class="config-card">
+                        <h4>Poster Settings</h4>
+                        <p style="font-size: 12px; color: #666; margin-bottom: 15px;">📐 Layout structure is determined by the Design Template selected above.</p>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Page Orientation</label>
+                                <select id="pageOrientation" class="form-select">
+                                    <option value="landscape">Landscape (A4)</option>
+                                    <option value="portrait">Portrait (A4)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Font Family</label>
+                                <select id="fontFamily" class="form-select">
+                                    <option value="'Oswald', sans-serif">Oswald</option>
+                                    <option value="'Roboto', sans-serif">Roboto</option>
+                                    <option value="'Open Sans', sans-serif">Open Sans</option>
+                                    <option value="'Montserrat', sans-serif">Montserrat</option>
+                                    <option value="Arial, sans-serif">Arial</option>
+                                    <option value="Georgia, serif">Georgia (Serif)</option>
+                                    <option value="'Times New Roman', serif">Times New Roman</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Title Size</label>
+                                <select id="titleSize" class="form-select">
+                                    <option value="18px">Small</option>
+                                    <option value="22px" selected>Medium</option>
+                                    <option value="26px">Large</option>
+                                    <option value="30px">Extra Large</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Body Text Size</label>
+                                <select id="bodySize" class="form-select">
+                                    <option value="8px">Extra Small (8px)</option>
+                                    <option value="9px">Small (9px)</option>
+                                    <option value="10px" selected>Medium (10px)</option>
+                                    <option value="11px">Large (11px)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1.5rem; text-align: center;">
+                    <button class="btn btn-success" onclick="generatePoster()">🎨 GENERATE POSTER</button>
+                </div>
+
+                <!-- Poster Preview -->
+                <div id="posterPreviewSection" class="hidden">
+                    <div class="section-header">
+                        <span class="section-icon">3</span>
+                        <span class="section-title">POSTER PREVIEW & DOWNLOAD</span>
+                    </div>
+
+                    <div class="poster-preview-container">
+                        <div class="poster-scale-controls">
+                            <label>Zoom: <span id="scaleValue">50%</span></label>
+                            <input type="range" id="posterScale" min="30" max="100" value="50" oninput="updatePosterScale()">
+                        </div>
+                        <div class="download-buttons">
+                            <button class="btn btn-success btn-sm" onclick="downloadPDF()">📄 Download PDF</button>
+                            <button class="btn btn-primary btn-sm" onclick="downloadWord()">📝 Download Word</button>
+                            <button class="btn btn-gold btn-sm" onclick="downloadImage('png')">📥 PNG</button>
+                            <button class="btn btn-gold btn-sm" onclick="downloadImage('jpeg')">📥 JPEG</button>
+                            <button class="btn btn-secondary btn-sm" onclick="printPoster()">🖨️ Print</button>
+                        </div>
+                        <div id="posterFrame" class="poster-frame"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="page-footer">
+            Informatics Consultancy Firm-Sierra Leone (ICF-SL)
+            <p><em>Driving Data-Driven Solutions for Health and Development</em></p>
+        </div>
+    </div>
+
+    <script>
+        // 10 UNIQUE DESIGN TEMPLATES - Different layouts, not just colors
+        const themes = [
+            {
+                id: 'classic-3col',
+                name: 'Classic 3-Column',
+                description: 'Traditional 3-column academic',
+                layout: 'three-column',
+                primary: '#1a365d', secondary: '#2c5282', accent: '#c53030',
+                headerText: '#ffffff', bg: '#ffffff', sectionBg: '#f7fafc', text: '#2d3748'
+            },
+            {
+                id: 'two-column',
+                name: 'Two Column',
+                description: 'Wide 2-column layout',
+                layout: 'two-column',
+                primary: '#6b46c1', secondary: '#805ad5', accent: '#ed64a6',
+                headerText: '#ffffff', bg: '#f7fafc', sectionBg: '#ffffff', text: '#2d3748'
+            },
+            {
+                id: 'sidebar-left',
+                name: 'Left Sidebar',
+                description: 'Sidebar + main content',
+                layout: 'sidebar-left',
+                primary: '#276749', secondary: '#38a169', accent: '#ed8936',
+                headerText: '#ffffff', bg: '#f0fff4', sectionBg: '#ffffff', text: '#22543d'
+            },
+            {
+                id: 'sidebar-right',
+                name: 'Right Sidebar',
+                description: 'Main content + sidebar',
+                layout: 'sidebar-right',
+                primary: '#553c9a', secondary: '#6b46c1', accent: '#d69e2e',
+                headerText: '#ffffff', bg: '#faf5ff', sectionBg: '#ffffff', text: '#44337a'
+            },
+            {
+                id: 'horizontal-sections',
+                name: 'Horizontal Sections',
+                description: 'Full-width stacked rows',
+                layout: 'horizontal',
+                primary: '#c53030', secondary: '#9b2c2c', accent: '#ecc94b',
+                headerText: '#ffffff', bg: '#1a202c', sectionBg: '#2d3748', text: '#e2e8f0'
+            },
+            {
+                id: 'grid-4',
+                name: 'Grid 4-Box',
+                description: '2x2 grid layout',
+                layout: 'grid-four',
+                primary: '#319795', secondary: '#38b2ac', accent: '#ed8936',
+                headerText: '#ffffff', bg: '#e6fffa', sectionBg: '#ffffff', text: '#234e52'
+            },
+            {
+                id: 'zigzag',
+                name: 'Zigzag Flow',
+                description: 'Alternating layout',
+                layout: 'zigzag',
+                primary: '#667eea', secondary: '#f093fb', accent: '#48bb78',
+                headerText: '#ffffff', bg: '#ffffff', sectionBg: '#f0f4ff', text: '#4a5568'
+            },
+            {
+                id: 'center-focus',
+                name: 'Center Focus',
+                description: 'Large center, small sides',
+                layout: 'center-focus',
+                primary: '#2b6cb0', secondary: '#3182ce', accent: '#dd6b20',
+                headerText: '#ffffff', bg: '#ffffff', sectionBg: '#ebf8ff', text: '#2a4365'
+            },
+            {
+                id: 'modular-blocks',
+                name: 'Modular Blocks',
+                description: 'Mixed size blocks',
+                layout: 'modular',
+                primary: '#744210', secondary: '#975a16', accent: '#2f855a',
+                headerText: '#fffaf0', bg: '#fffaf0', sectionBg: '#ffffff', text: '#744210'
+            },
+            {
+                id: 'icf-official',
+                name: 'ICF Official',
+                description: 'ICF-SL branded 3-column',
+                layout: 'icf',
+                primary: '#004080', secondary: '#0056b3', accent: '#ffc107',
+                headerText: '#ffffff', bg: '#ffffff', sectionBg: '#e7f3ff', text: '#1a365d'
+            }
+        ];
+
+        let selectedTheme = themes[9]; // ICF Official as default
+        let uploadedLogos = []; // Array for multiple logos
+        let logoCounter = 0;
+        let resultImages = {}; // Dynamic object for unlimited images
+        let imageCounter = 0;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initThemeGrid();
+            // Add first logo upload slot
+            addLogoUpload();
+            // Add first image upload slot
+            addImageUpload();
+            // Setup word counters
+            setupWordCounters();
+        });
+
+        // Word count function
+        function setupWordCounters() {
+            const sections = [
+                { id: 'sectionIntro', countId: 'introCount', min: 100, max: 200 },
+                { id: 'sectionMethods', countId: 'methodsCount', min: 100, max: 200 },
+                { id: 'sectionResults', countId: 'resultsCount', min: 150, max: 200 },
+                { id: 'sectionConclusions', countId: 'conclusionsCount', min: 100, max: 200 }
+            ];
+            
+            sections.forEach(section => {
+                const textarea = document.getElementById(section.id);
+                const counter = document.getElementById(section.countId);
+                if (textarea && counter) {
+                    const updateCount = () => {
+                        const text = textarea.value.trim();
+                        const words = text ? text.split(/\s+/).length : 0;
+                        counter.textContent = `${words} words`;
+                        counter.className = 'word-count';
+                        if (words > section.max) {
+                            counter.classList.add('warning');
+                            counter.textContent += ` (over ${section.max} recommended)`;
+                        } else if (words >= section.min && words <= section.max) {
+                            counter.classList.add('good');
+                            counter.textContent += ' ✓';
+                        }
+                    };
+                    textarea.addEventListener('input', updateCount);
+                    updateCount(); // Initial count
+                }
+            });
+        }
+
+        // Dynamic logo upload functions
+        function addLogoUpload() {
+            logoCounter++;
+            const container = document.getElementById('logosContainer');
+            
+            const logoCard = document.createElement('div');
+            logoCard.className = 'logo-upload-item';
+            logoCard.id = `logoCard${logoCounter}`;
+            logoCard.style.cssText = 'display: flex; gap: 10px; align-items: center; padding: 10px; background: #fff; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px;';
+            logoCard.innerHTML = `
+                <div style="flex-shrink: 0;">
+                    <label style="cursor: pointer; display: block; width: 70px; height: 70px; background: #f8f9fa; border: 2px dashed #aaa; border-radius: 6px; display: flex; align-items: center; justify-content: center;" id="logoLabel${logoCounter}">
+                        <span style="font-size: 24px;">🏢</span>
+                        <input type="file" id="logoFile${logoCounter}" accept="image/*" onchange="handleLogoUpload(${logoCounter})" style="display:none;">
+                    </label>
+                    <img id="logoPreview${logoCounter}" class="hidden" style="width: 70px; height: 70px; object-fit: contain; border: 2px solid #28a745; border-radius: 6px;">
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                    <input type="text" id="logoName${logoCounter}" class="form-input" placeholder="Organization name (optional)" style="font-size: 12px; padding: 8px; margin-bottom: 5px;">
+                    <span id="removeLogo${logoCounter}" class="hidden" onclick="removeLogoUpload(${logoCounter})" style="color: #dc3545; cursor: pointer; font-size: 11px;">🗑️ Remove</span>
+                </div>
+            `;
+            
+            container.appendChild(logoCard);
+        }
+
+        function handleLogoUpload(num) {
+            const input = document.getElementById(`logoFile${num}`);
+            const preview = document.getElementById(`logoPreview${num}`);
+            const label = document.getElementById(`logoLabel${num}`);
+            const removeBtn = document.getElementById(`removeLogo${num}`);
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Store logo data
+                    uploadedLogos[num] = {
+                        data: e.target.result,
+                        name: ''
+                    };
+                    
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                    label.classList.add('hidden');
+                    removeBtn.classList.remove('hidden');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function removeLogoUpload(num) {
+            delete uploadedLogos[num];
+            const card = document.getElementById(`logoCard${num}`);
+            if (card) card.remove();
+        }
+
+        function initThemeGrid() {
+            const grid = document.getElementById('themeGrid');
+            grid.innerHTML = themes.map((t, i) => {
+                // Create unique layout preview for each design
+                let previewHTML = '';
+                
+                switch(t.layout) {
+                    case 'three-column':
+                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};">
+                            <div style="background:${t.primary};height:14px;"></div>
+                            <div style="flex:1;display:flex;gap:2px;padding:3px;">
+                                <div style="flex:1;background:${t.sectionBg};border:1px solid ${t.primary};"></div>
+                                <div style="flex:1;background:${t.sectionBg};border:1px solid ${t.primary};"></div>
+                                <div style="flex:1;background:${t.sectionBg};border:1px solid ${t.primary};"></div>
+                            </div>
+                            <div style="background:${t.primary};height:6px;"></div>
+                        </div>`;
+                        break;
+                    case 'two-column':
+                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};">
+                            <div style="background:linear-gradient(135deg,${t.primary},${t.secondary});height:16px;border-radius:0 0 8px 8px;"></div>
+                            <div style="flex:1;display:flex;gap:4px;padding:4px;">
+                                <div style="flex:1;background:${t.sectionBg};border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);"></div>
+                                <div style="flex:1;background:${t.sectionBg};border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);"></div>
+                            </div>
+                            <div style="background:linear-gradient(135deg,${t.primary},${t.secondary});height:6px;"></div>
+                        </div>`;
+                        break;
+                    case 'sidebar-left':
+                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};">
+                            <div style="background:${t.primary};height:12px;"></div>
+                            <div style="flex:1;display:flex;">
+                                <div style="width:30%;background:${t.primary};"></div>
+                                <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:3px;">
+                                    <div style="background:${t.sectionBg};border-left:2px solid ${t.primary};"></div>
+                                    <div style="background:${t.sectionBg};border-left:2px solid ${t.primary};"></div>
+                                </div>
+                            </div>
+                            <div style="background:${t.primary};height:5px;"></div>
+                        </div>`;
+                        break;
+                    case 'sidebar-right':
+                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};">
+                            <div style="background:linear-gradient(90deg,${t.primary},${t.secondary});height:14px;"></div>
+                            <div style="flex:1;display:flex;">
+                                <div style="flex:1;display:flex;flex-direction:column;gap:2px;padding:3px;">
+                                    <div style="flex:1;background:${t.sectionBg};border-radius:4px;"></div>
+                                    <div style="flex:1;background:${t.sectionBg};border-radius:4px;"></div>
+                                </div>
+                                <div style="width:28%;background:${t.sectionBg};border-left:3px solid ${t.primary};"></div>
+                            </div>
+                            <div style="background:${t.primary};height:5px;"></div>
+                        </div>`;
+                        break;
+                    case 'horizontal':
+                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};">
+                            <div style="background:${t.primary};height:18px;clip-path:polygon(0 0,100% 0,100% 70%,0 100%);"></div>
+                            <div style="flex:1;display:flex;flex-direction:column;gap:3px;padding:3px;">
+                                <div style="display:flex;gap:2px;flex:1;"><div style="flex:1;background:${t.sectionBg};border-left:3px solid ${t.accent};"></div><div style="flex:1;background:${t.sectionBg};border-left:3px solid ${t.accent};"></div></div>
+                                <div style="flex:1;background:${t.sectionBg};border-left:3px solid ${t.accent};"></div>
+                            </div>
+                            <div style="background:${t.primary};height:10px;clip-path:polygon(0 50%,100% 0,100% 100%,0 100%);"></div>
+                        </div>`;
+                        break;
+                    case 'grid-four':
+                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};">
+                            <div style="background:linear-gradient(180deg,${t.primary},${t.secondary});height:14px;border-radius:0 0 50% 50%;"></div>
+                            <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:3px;padding:4px;">
+                                <div style="background:${t.sectionBg};border:1px solid ${t.secondary};border-radius:6px;"></div>
+                                <div style="background:${t.sectionBg};border:1px solid ${t.secondary};border-radius:6px;"></div>
+                                <div style="background:${t.sectionBg};border:1px solid ${t.secondary};border-radius:6px;"></div>
+                                <div style="background:${t.sectionBg};border:1px solid ${t.secondary};border-radius:6px;"></div>
+                            </div>
+                            <div style="background:linear-gradient(0deg,${t.primary},${t.secondary});height:8px;border-radius:8px 8px 0 0;"></div>
+                        </div>`;
+                        break;
+                    case 'zigzag':
+                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};">
+                            <div style="background:linear-gradient(135deg,${t.primary},${t.secondary});height:14px;"></div>
+                            <div style="flex:1;display:flex;flex-direction:column;gap:3px;padding:4px;">
+                                <div style="display:flex;gap:2px;flex:1;"><div style="flex:2;background:${t.sectionBg};border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,0.1);"></div><div style="flex:1;background:${t.sectionBg};border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,0.1);"></div></div>
+                                <div style="display:flex;gap:2px;flex:1;flex-direction:row-reverse;"><div style="flex:2;background:${t.sectionBg};border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,0.1);"></div><div style="flex:1;background:${t.sectionBg};border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,0.1);"></div></div>
+                            </div>
+                            <div style="background:linear-gradient(135deg,${t.primary},${t.secondary});height:6px;"></div>
+                        </div>`;
+                        break;
+                    case 'center-focus':
+                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};">
+                            <div style="background:${t.primary};height:12px;border-bottom:2px solid ${t.accent};"></div>
+                            <div style="flex:1;display:flex;gap:2px;padding:3px;">
+                                <div style="width:22%;display:flex;flex-direction:column;gap:2px;"><div style="flex:1;background:${t.sectionBg};border-top:2px solid ${t.primary};"></div><div style="flex:1;background:${t.sectionBg};border-top:2px solid ${t.primary};"></div></div>
+                                <div style="flex:1;background:${t.primary};border-top:2px solid ${t.accent};"></div>
+                                <div style="width:22%;display:flex;flex-direction:column;gap:2px;"><div style="flex:1;background:${t.sectionBg};border-top:2px solid ${t.primary};"></div><div style="flex:1;background:${t.sectionBg};border-top:2px solid ${t.primary};"></div></div>
+                            </div>
+                            <div style="background:${t.primary};height:6px;border-top:2px solid ${t.accent};"></div>
+                        </div>`;
+                        break;
+                    case 'modular':
+                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};">
+                            <div style="background:${t.primary};height:14px;"></div>
+                            <div style="flex:1;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);gap:2px;padding:3px;">
+                                <div style="grid-column:span 2;background:${t.sectionBg};border:1px solid ${t.secondary};"></div>
+                                <div style="grid-row:span 2;background:${t.sectionBg};border:1px solid ${t.secondary};"></div>
+                                <div style="background:${t.sectionBg};border:1px solid ${t.secondary};"></div>
+                                <div style="grid-column:span 2;grid-row:span 2;background:${t.sectionBg};border:1px solid ${t.secondary};"></div>
+                                <div style="background:${t.sectionBg};border:1px solid ${t.secondary};"></div>
+                            </div>
+                            <div style="background:${t.primary};height:5px;"></div>
+                        </div>`;
+                        break;
+                    case 'icf':
+                    default:
+                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};">
+                            <div style="background:${t.primary};height:14px;border-bottom:3px solid ${t.accent};"></div>
+                            <div style="flex:1;display:flex;gap:3px;padding:4px;">
+                                <div style="flex:1;background:${t.sectionBg};border:1px solid ${t.primary};border-radius:4px;"></div>
+                                <div style="flex:1;background:${t.sectionBg};border:1px solid ${t.primary};border-radius:4px;"></div>
+                                <div style="flex:1;background:${t.sectionBg};border:1px solid ${t.primary};border-radius:4px;"></div>
+                            </div>
+                            <div style="background:${t.primary};height:6px;border-top:3px solid ${t.accent};"></div>
+                        </div>`;
+                        break;
+                }
+                
+                return `
+                <div class="theme-card ${i === 9 ? 'selected' : ''}" onclick="selectTheme('${t.id}')" id="theme-${t.id}">
+                    <div class="theme-preview" style="border-radius:4px;overflow:hidden;border:1px solid #ddd;">${previewHTML}</div>
+                    <div class="theme-name">${t.name}</div>
+                    <div style="font-size:9px;color:#666;">${t.description}</div>
+                </div>
+            `}).join('');
+        }
+
+        // Dynamic image upload functions
+        function addImageUpload() {
+            imageCounter++;
+            const container = document.getElementById('imageUploadsContainer');
+            
+            const uploadCard = document.createElement('div');
+            uploadCard.className = 'image-upload-card';
+            uploadCard.id = `imageCard${imageCounter}`;
+            uploadCard.innerHTML = `
+                <div class="image-number">Figure ${imageCounter}</div>
+                <div class="image-upload-row">
+                    <div class="image-preview-container">
+                        <label style="cursor: pointer; display: block; text-align: center; padding: 20px; background: #f8f9fa; border-radius: 6px; border: 1px dashed #aaa;" id="uploadLabel${imageCounter}">
+                            <span style="font-size: 28px;">📊</span><br>
+                            <span style="font-size: 12px; color: #666;">Click to upload</span>
+                            <input type="file" id="resultImage${imageCounter}" accept="image/*" onchange="handleResultImage(${imageCounter})" style="display:none;">
+                        </label>
+                        <img id="imagePreview${imageCounter}" class="image-preview hidden">
+                    </div>
+                    <div class="image-details">
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <label class="form-label" style="font-size: 11px;">Caption / Interpretation</label>
+                            <textarea id="imageCaption${imageCounter}" class="form-textarea" rows="3" placeholder="Enter figure caption or interpretation..." style="font-size: 12px;"></textarea>
+                        </div>
+                        <span id="removeImg${imageCounter}" class="remove-btn hidden" onclick="removeResultImage(${imageCounter})">🗑️ Remove this image</span>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(uploadCard);
+        }
+
+        function selectTheme(id) {
+            selectedTheme = themes.find(t => t.id === id);
+            document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById(`theme-${id}`).classList.add('selected');
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+        }
+
+        function showAlert(msg, type) {
+            document.getElementById('alertContainer').innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+            setTimeout(() => document.getElementById('alertContainer').innerHTML = '', 4000);
+        }
+
+        // Result images handling
+        function handleResultImage(num) {
+            const input = document.getElementById(`resultImage${num}`);
+            const preview = document.getElementById(`imagePreview${num}`);
+            const card = document.getElementById(`imageCard${num}`);
+            const removeBtn = document.getElementById(`removeImg${num}`);
+            const uploadLabel = document.getElementById(`uploadLabel${num}`);
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    resultImages[num] = e.target.result;
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                    if (uploadLabel) uploadLabel.classList.add('hidden');
+                    removeBtn.classList.remove('hidden');
+                    card.classList.add('has-image');
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function removeResultImage(num) {
+            delete resultImages[num];
+            const input = document.getElementById(`resultImage${num}`);
+            const preview = document.getElementById(`imagePreview${num}`);
+            const card = document.getElementById(`imageCard${num}`);
+            const removeBtn = document.getElementById(`removeImg${num}`);
+            const uploadLabel = document.getElementById(`uploadLabel${num}`);
+            
+            if (input) input.value = '';
+            if (preview) preview.classList.add('hidden');
+            if (removeBtn) removeBtn.classList.add('hidden');
+            if (uploadLabel) uploadLabel.classList.remove('hidden');
+            if (card) card.classList.remove('has-image');
+        }
+
+        function formatContent(text) {
+            if (!text || !text.trim()) return '';
+            return text.split('\n').map(line => {
+                line = line.trim();
+                if (!line) return '';
+                if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
+                    return `<li>${line.substring(1).trim()}</li>`;
+                }
+                return `<p>${line}</p>`;
+            }).join('').replace(/(<li>.*?<\/li>)+/g, '<ul>$&</ul>');
+        }
+
+        function generatePoster() {
+            const theme = selectedTheme;
+            const orientation = document.getElementById('pageOrientation').value;
+            const font = document.getElementById('fontFamily').value;
+            const titleSize = document.getElementById('titleSize').value;
+            const bodySize = document.getElementById('bodySize').value;
+
+            // Get content
+            const title = document.getElementById('posterTitle').value || 'Research Title';
+            const authors = document.getElementById('posterAuthors').value || '';
+            const affiliations = document.getElementById('posterAffiliations').value || '';
+            const contact = document.getElementById('contactInfo').value || '';
+            const eventName = document.getElementById('eventName').value || '';
+
+            const intro = { title: 'Introduction', content: formatContent(document.getElementById('sectionIntro').value.trim()), raw: document.getElementById('sectionIntro').value.trim() };
+            const methods = { title: 'Methods', content: formatContent(document.getElementById('sectionMethods').value.trim()), raw: document.getElementById('sectionMethods').value.trim() };
+            const results = { title: 'Results', content: formatContent(document.getElementById('sectionResults').value.trim()), raw: document.getElementById('sectionResults').value.trim() };
+            const conclusions = { title: 'Conclusions', content: formatContent(document.getElementById('sectionConclusions').value.trim()), raw: document.getElementById('sectionConclusions').value.trim() };
+            const ack = { title: 'Acknowledgements', content: formatContent(document.getElementById('sectionAcknowledgements').value.trim()), raw: document.getElementById('sectionAcknowledgements').value.trim() };
+            const refs = { title: 'References', content: document.getElementById('sectionReferences').value.trim().replace(/\n/g, '<br>'), raw: document.getElementById('sectionReferences').value.trim() };
+
+            // Build images HTML
+            let imagesHTML = '';
+            for (let i = 1; i <= imageCounter; i++) {
+                if (resultImages[i]) {
+                    const captionEl = document.getElementById(`imageCaption${i}`);
+                    const caption = captionEl ? captionEl.value : '';
+                    imagesHTML += `<div class="poster-figure">
+                        <img src="${resultImages[i]}" alt="Figure ${i}">
+                        ${caption ? `<div class="poster-figure-caption">${caption}</div>` : ''}
+                    </div>`;
+                }
+            }
+            if (imagesHTML) imagesHTML = `<div class="poster-images">${imagesHTML}</div>`;
+
+            // Collect logos
+            const logos = [];
+            for (let i = 1; i <= logoCounter; i++) {
+                if (uploadedLogos[i] && uploadedLogos[i].data) {
+                    logos.push(uploadedLogos[i].data);
+                }
+            }
+
+            // Update frame
+            const frame = document.getElementById('posterFrame');
+            frame.className = `poster-frame ${orientation}`;
+
+            // Generate layout-specific HTML
+            const posterHTML = generateLayoutHTML(theme, {
+                title, authors, affiliations, contact, eventName, logos,
+                intro, methods, results, conclusions, ack, refs, imagesHTML,
+                font, titleSize, bodySize
+            });
+
+            frame.innerHTML = posterHTML;
+
+            document.getElementById('posterPreviewSection').classList.remove('hidden');
+            updatePosterScale();
+            setTimeout(() => document.getElementById('posterPreviewSection').scrollIntoView({ behavior: 'smooth' }), 100);
+            showAlert('Poster generated! Scroll down to preview.', 'success');
+        }
+
+        // Generate completely different HTML layouts based on theme.layout
+        function generateLayoutHTML(theme, data) {
+            const t = theme;
+            const d = data;
+            
+            // Common styles
+            const baseStyles = `
+                .poster { font-family: ${d.font}; background: ${t.bg}; color: ${t.text}; width: 100%; height: 100%; display: flex; flex-direction: column; }
+                .poster-title { font-size: ${d.titleSize}; font-weight: 700; }
+                .poster-authors { font-size: 11px; margin-top: 5px; }
+                .poster-affiliations { font-size: 9px; opacity: 0.9; margin-top: 3px; }
+                .poster-section-title { font-weight: 700; font-size: 11px; text-transform: uppercase; margin-bottom: 8px; }
+                .poster-section-content { font-size: ${d.bodySize}; line-height: 1.4; }
+                .poster-section-content p { margin-bottom: 5px; }
+                .poster-section-content ul { margin: 5px 0 5px 15px; }
+                .poster-logo { width: 50px; height: 50px; background: #fff; border-radius: 6px; padding: 3px; display: inline-flex; align-items: center; justify-content: center; margin: 0 5px; }
+                .poster-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+                
+                /* RESULTS TEXT Section */
+                .results-content {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                }
+                .results-row {
+                    display: flex;
+                    gap: 15px;
+                    align-items: stretch;
+                }
+                .results-row .results-text-box {
+                    flex: 1;
+                    min-width: 35%;
+                    margin-bottom: 0;
+                }
+                .results-row .figures-box {
+                    flex: 2;
+                    min-width: 55%;
+                }
+                .results-text-box { 
+                    background: #fff; 
+                    border: 2px solid ${t.primary}; 
+                    border-radius: 8px; 
+                    padding: 12px; 
+                    margin-bottom: 12px;
+                }
+                .results-text-header { 
+                    background: ${t.primary}; 
+                    color: #fff; 
+                    font-weight: 700; 
+                    font-size: 10px; 
+                    padding: 6px 10px; 
+                    margin: -12px -12px 10px -12px; 
+                    border-radius: 6px 6px 0 0; 
+                    text-transform: uppercase; 
+                    letter-spacing: 1px;
+                }
+                
+                /* FIGURES Section */
+                .figures-box { 
+                    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); 
+                    border: 3px solid ${t.accent}; 
+                    border-radius: 8px; 
+                    padding: 12px;
+                }
+                .figures-header { 
+                    background: ${t.accent}; 
+                    color: #fff; 
+                    font-weight: 700; 
+                    font-size: 10px; 
+                    padding: 6px 10px; 
+                    margin: -12px -12px 12px -12px; 
+                    border-radius: 5px 5px 0 0; 
+                    text-transform: uppercase; 
+                    letter-spacing: 1px;
+                    text-align: center;
+                }
+                .figures-grid { 
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                    gap: 12px; 
+                    justify-items: stretch;
+                    align-items: start;
+                }
+                .poster-figure { 
+                    text-align: center; 
+                    background: #fff; 
+                    border: 2px solid ${t.primary}; 
+                    border-radius: 8px; 
+                    padding: 10px;
+                    width: 100%;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    display: flex;
+                    flex-direction: column;
+                }
+                .poster-figure img { 
+                    width: 100%;
+                    height: 120px; 
+                    object-fit: contain; 
+                    display: block; 
+                    margin: 0 auto; 
+                    border-radius: 4px;
+                    border: 1px solid #ddd;
+                    background: #f9f9f9;
+                    padding: 5px;
+                }
+                .poster-figure-caption { 
+                    font-size: 7px; 
+                    color: #333; 
+                    margin-top: 8px; 
+                    line-height: 1.3; 
+                    text-align: left; 
+                    padding: 5px 6px; 
+                    background: ${t.sectionBg}; 
+                    border-radius: 4px; 
+                    border-left: 3px solid ${t.primary};
+                    flex-grow: 1;
+                }
+                .poster-figure-num {
+                    font-weight: 700;
+                    color: ${t.primary};
+                }
+            `;
+
+            const logosHTML = d.logos.length > 0 ? d.logos.map(l => `<span class="poster-logo"><img src="${l}"></span>`).join('') : '';
+            const footerContent = (d.contact || d.eventName) ? `<div style="padding: 8px; text-align: center; font-size: 9px;">${d.contact || ''} ${d.eventName ? ' | ' + d.eventName : ''}</div>` : '';
+
+            // Helper to create section
+            const sec = (s, extra = '') => s.raw ? `<div class="poster-section ${extra}"><div class="poster-section-title">${s.title}</div><div class="poster-section-content">${s.content}</div></div>` : '';
+            
+            // Build individual figure HTML
+            let figuresHTML = '';
+            let figNum = 1;
+            for (let i = 1; i <= imageCounter; i++) {
+                if (resultImages[i]) {
+                    const captionEl = document.getElementById(`imageCaption${i}`);
+                    const caption = captionEl ? captionEl.value : '';
+                    figuresHTML += `<div class="poster-figure">
+                        <img src="${resultImages[i]}" alt="Figure ${figNum}">
+                        <div class="poster-figure-caption"><span class="poster-figure-num">Figure ${figNum}:</span> ${caption || 'No caption'}</div>
+                    </div>`;
+                    figNum++;
+                }
+            }
+            
+            // Special Results section with CLEAR separate text and figures
+            const resultsSection = () => {
+                if (!d.results.raw && !figuresHTML) return '';
+                
+                let html = `<div class="poster-section results-section">
+                    <div class="poster-section-title">Results</div>
+                    <div class="poster-section-content results-content">`;
+                
+                // If both text and figures, show side by side
+                if (d.results.raw && figuresHTML) {
+                    html += `<div class="results-row">
+                        <div class="results-text-box">
+                            <div class="results-text-header">📝 Key Findings</div>
+                            <div>${d.results.content}</div>
+                        </div>
+                        <div class="figures-box">
+                            <div class="figures-header">📊 Figures & Charts</div>
+                            <div class="figures-grid">${figuresHTML}</div>
+                        </div>
+                    </div>`;
+                } else if (d.results.raw) {
+                    // Only text
+                    html += `<div class="results-text-box">
+                        <div class="results-text-header">📝 Key Findings</div>
+                        <div>${d.results.content}</div>
+                    </div>`;
+                } else if (figuresHTML) {
+                    // Only figures
+                    html += `<div class="figures-box">
+                        <div class="figures-header">📊 Figures & Charts</div>
+                        <div class="figures-grid">${figuresHTML}</div>
+                    </div>`;
+                }
+                
+                html += `</div></div>`;
+                return html;
+            };
+
+            switch(t.layout) {
+                case 'three-column':
+                    return `<style>${baseStyles}
+                        .poster-header { background: ${t.primary}; color: ${t.headerText}; padding: 15px; text-align: center; }
+                        .poster-body { flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; padding: 10px; align-content: start; }
+                        .poster-section { background: ${t.sectionBg}; border: 2px solid ${t.primary}; border-radius: 6px; padding: 10px; height: fit-content; }
+                        .poster-section-title { background: ${t.primary}; color: ${t.headerText}; padding: 6px 10px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0; }
+                        .poster-footer { background: ${t.primary}; color: ${t.headerText}; }
+                        .results-section { grid-column: span 3; }
+                        .conclusions-row { grid-column: span 3; }
+                        .ack-refs-row { grid-column: span 3; display: flex; gap: 10px; }
+                        .ack-refs-row .poster-section { flex: 1; }
+                    </style>
+                    <div class="poster">
+                        <div class="poster-header">${logosHTML}<div class="poster-title">${d.title}</div><div class="poster-authors">${d.authors}</div><div class="poster-affiliations">${d.affiliations}</div></div>
+                        <div class="poster-body">${sec(d.intro)}${sec(d.methods)}${resultsSection()}<div class="conclusions-row">${sec(d.conclusions)}</div>${(d.ack.raw || d.refs.raw) ? `<div class="ack-refs-row">${d.ack.raw ? sec(d.ack) : ''}${d.refs.raw ? sec(d.refs) : ''}</div>` : ''}</div>
+                        <div class="poster-footer">${footerContent}</div>
+                    </div>`;
+
+                case 'two-column':
+                    return `<style>${baseStyles}
+                        .poster-header { background: linear-gradient(135deg, ${t.primary}, ${t.secondary}); color: ${t.headerText}; padding: 20px; text-align: center; }
+                        .poster-body { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; align-content: start; }
+                        .poster-section { background: ${t.sectionBg}; border-radius: 12px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); height: fit-content; }
+                        .poster-section-title { color: ${t.primary}; border-bottom: 3px solid ${t.accent}; padding-bottom: 5px; }
+                        .poster-footer { background: linear-gradient(135deg, ${t.primary}, ${t.secondary}); color: ${t.headerText}; }
+                        .results-section { grid-column: span 2; }
+                        .conclusions-row { grid-column: span 2; }
+                        .ack-refs-row { grid-column: span 2; display: flex; gap: 15px; }
+                        .ack-refs-row .poster-section { flex: 1; }
+                    </style>
+                    <div class="poster">
+                        <div class="poster-header">${logosHTML}<div class="poster-title">${d.title}</div><div class="poster-authors">${d.authors}</div><div class="poster-affiliations">${d.affiliations}</div></div>
+                        <div class="poster-body">${sec(d.intro)}${sec(d.methods)}${resultsSection()}<div class="conclusions-row">${sec(d.conclusions)}</div>${(d.ack.raw || d.refs.raw) ? `<div class="ack-refs-row">${d.ack.raw ? sec(d.ack) : ''}${d.refs.raw ? sec(d.refs) : ''}</div>` : ''}</div>
+                        <div class="poster-footer">${footerContent}</div>
+                    </div>`;
+
+                case 'sidebar-left':
+                    return `<style>${baseStyles}
+                        .poster-header { background: ${t.primary}; color: ${t.headerText}; padding: 12px 15px; }
+                        .poster-main { flex: 1; display: flex; }
+                        .poster-sidebar { width: 28%; background: ${t.primary}; color: ${t.headerText}; padding: 15px; }
+                        .poster-sidebar .poster-section { background: rgba(255,255,255,0.15); border: none; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+                        .poster-sidebar .poster-section-title { color: ${t.accent}; border-bottom: 2px solid ${t.accent}; }
+                        .poster-content { flex: 1; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+                        .poster-section { background: ${t.sectionBg}; border-left: 4px solid ${t.primary}; padding: 10px 10px 10px 12px; height: fit-content; }
+                        .poster-section-title { color: ${t.primary}; }
+                        .poster-footer { background: ${t.primary}; color: ${t.headerText}; }
+                        .ack-refs-row { display: flex; gap: 12px; }
+                        .ack-refs-row .poster-section { flex: 1; }
+                    </style>
+                    <div class="poster">
+                        <div class="poster-header"><div style="display:flex;align-items:center;gap:15px;">${logosHTML}<div><div class="poster-title" style="font-size:20px;">${d.title}</div><div class="poster-authors">${d.authors}</div></div></div></div>
+                        <div class="poster-main">
+                            <div class="poster-sidebar">${sec(d.intro)}${sec(d.methods)}</div>
+                            <div class="poster-content">${resultsSection()}${sec(d.conclusions)}${(d.ack.raw || d.refs.raw) ? `<div class="ack-refs-row">${d.ack.raw ? sec(d.ack) : ''}${d.refs.raw ? sec(d.refs) : ''}</div>` : ''}</div>
+                        </div>
+                        <div class="poster-footer">${footerContent}</div>
+                    </div>`;
+
+                case 'sidebar-right':
+                    return `<style>${baseStyles}
+                        .poster-header { background: linear-gradient(90deg, ${t.primary}, ${t.secondary}); color: ${t.headerText}; padding: 15px; text-align: center; }
+                        .poster-main { flex: 1; display: flex; }
+                        .poster-content { flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+                        .poster-section { background: ${t.sectionBg}; border-radius: 8px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); height: fit-content; }
+                        .poster-section-title { color: ${t.primary}; }
+                        .poster-sidebar { width: 30%; background: ${t.sectionBg}; border-left: 4px solid ${t.primary}; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+                        .poster-sidebar .poster-section { background: ${t.primary}; color: ${t.headerText}; }
+                        .poster-sidebar .poster-section-title { color: ${t.accent}; }
+                        .poster-footer { background: ${t.primary}; color: ${t.headerText}; }
+                        .ack-refs-row { display: flex; gap: 10px; }
+                        .ack-refs-row .poster-section { flex: 1; }
+                    </style>
+                    <div class="poster">
+                        <div class="poster-header">${logosHTML}<div class="poster-title">${d.title}</div><div class="poster-authors">${d.authors}</div><div class="poster-affiliations">${d.affiliations}</div></div>
+                        <div class="poster-main">
+                            <div class="poster-content">${sec(d.intro)}${sec(d.methods)}${resultsSection()}${sec(d.conclusions)}${(d.ack.raw || d.refs.raw) ? `<div class="ack-refs-row">${d.ack.raw ? sec(d.ack) : ''}${d.refs.raw ? sec(d.refs) : ''}</div>` : ''}</div>
+                        </div>
+                        <div class="poster-footer">${footerContent}</div>
+                    </div>`;
+
+                case 'horizontal':
+                    return `<style>${baseStyles}
+                        .poster-header { background: ${t.primary}; color: ${t.headerText}; padding: 20px; text-align: center; clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%); padding-bottom: 30px; }
+                        .poster-body { flex: 1; display: flex; flex-direction: column; gap: 8px; padding: 10px 15px; }
+                        .poster-row { display: flex; gap: 10px; }
+                        .poster-section { flex: 1; background: ${t.sectionBg}; border-left: 5px solid ${t.accent}; padding: 10px 12px; height: fit-content; }
+                        .poster-section-title { color: ${t.accent}; }
+                        .poster-footer { background: ${t.primary}; color: ${t.headerText}; clip-path: polygon(0 30%, 100% 0, 100% 100%, 0 100%); padding-top: 15px; }
+                        .results-section { flex: 1; }
+                    </style>
+                    <div class="poster">
+                        <div class="poster-header">${logosHTML}<div class="poster-title">${d.title}</div><div class="poster-authors">${d.authors}</div></div>
+                        <div class="poster-body">
+                            <div class="poster-row">${sec(d.intro)}${sec(d.methods)}</div>
+                            <div class="poster-row">${resultsSection()}</div>
+                            <div class="poster-row">${sec(d.conclusions)}</div>
+                            ${(d.ack.raw || d.refs.raw) ? `<div class="poster-row">${d.ack.raw ? sec(d.ack) : ''}${d.refs.raw ? sec(d.refs) : ''}</div>` : ''}
+                        </div>
+                        <div class="poster-footer">${footerContent}</div>
+                    </div>`;
+
+                case 'grid-four':
+                    return `<style>${baseStyles}
+                        .poster-header { background: linear-gradient(180deg, ${t.primary}, ${t.secondary}); color: ${t.headerText}; padding: 15px; text-align: center; border-radius: 0 0 50% 50% / 0 0 20px 20px; }
+                        .poster-body { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px; align-content: start; }
+                        .poster-section { background: ${t.sectionBg}; border: 2px solid ${t.secondary}; border-radius: 15px; padding: 12px; height: fit-content; }
+                        .poster-section-title { background: ${t.primary}; color: ${t.headerText}; padding: 5px 10px; border-radius: 10px; display: inline-block; margin-bottom: 8px; }
+                        .poster-footer { background: linear-gradient(0deg, ${t.primary}, ${t.secondary}); color: ${t.headerText}; border-radius: 20px 20px 0 0; }
+                        .results-section { grid-column: span 2; }
+                        .conclusions-row { grid-column: span 2; }
+                        .ack-refs-row { grid-column: span 2; display: flex; gap: 12px; }
+                        .ack-refs-row .poster-section { flex: 1; }
+                    </style>
+                    <div class="poster">
+                        <div class="poster-header">${logosHTML}<div class="poster-title">${d.title}</div><div class="poster-authors">${d.authors}</div></div>
+                        <div class="poster-body">
+                            <div class="poster-section"><div class="poster-section-title">Introduction</div><div class="poster-section-content">${d.intro.content}</div></div>
+                            <div class="poster-section"><div class="poster-section-title">Methods</div><div class="poster-section-content">${d.methods.content}</div></div>
+                            ${resultsSection()}
+                            <div class="conclusions-row"><div class="poster-section"><div class="poster-section-title">Conclusions</div><div class="poster-section-content">${d.conclusions.content}</div></div></div>
+                            ${(d.ack.raw || d.refs.raw) ? `<div class="ack-refs-row">${d.ack.raw ? `<div class="poster-section"><div class="poster-section-title">Acknowledgements</div><div class="poster-section-content">${d.ack.content}</div></div>` : ''}${d.refs.raw ? `<div class="poster-section"><div class="poster-section-title">References</div><div class="poster-section-content">${d.refs.content}</div></div>` : ''}</div>` : ''}
+                        </div>
+                        <div class="poster-footer">${footerContent}</div>
+                    </div>`;
+
+                case 'zigzag':
+                    return `<style>${baseStyles}
+                        .poster-header { background: linear-gradient(135deg, ${t.primary}, ${t.secondary}); color: ${t.headerText}; padding: 15px; text-align: center; }
+                        .poster-body { flex: 1; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+                        .poster-row { display: flex; gap: 10px; }
+                        .poster-section { background: ${t.sectionBg}; border-radius: 10px; padding: 12px; box-shadow: 0 3px 12px rgba(102,126,234,0.15); }
+                        .poster-section.wide { flex: 2; }
+                        .poster-section.narrow { flex: 1; }
+                        .poster-section-title { background: linear-gradient(90deg, ${t.primary}, ${t.secondary}); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+                        .poster-footer { background: linear-gradient(135deg, ${t.primary}, ${t.secondary}); color: ${t.headerText}; }
+                        .results-section { flex: 2; }
+                    </style>
+                    <div class="poster">
+                        <div class="poster-header">${logosHTML}<div class="poster-title">${d.title}</div><div class="poster-authors">${d.authors}</div></div>
+                        <div class="poster-body">
+                            <div class="poster-row"><div class="poster-section wide"><div class="poster-section-title">Introduction</div><div class="poster-section-content">${d.intro.content}</div></div><div class="poster-section narrow"><div class="poster-section-title">Methods</div><div class="poster-section-content">${d.methods.content}</div></div></div>
+                            <div class="poster-row">${resultsSection()}</div>
+                            <div class="poster-row"><div class="poster-section wide"><div class="poster-section-title">Conclusions</div><div class="poster-section-content">${d.conclusions.content}</div></div>${(d.ack.raw || d.refs.raw) ? `${d.ack.raw ? `<div class="poster-section narrow"><div class="poster-section-title">Acknowledgements</div><div class="poster-section-content">${d.ack.content}</div></div>` : ''}${d.refs.raw ? `<div class="poster-section narrow"><div class="poster-section-title">References</div><div class="poster-section-content">${d.refs.content}</div></div>` : ''}` : ''}</div>
+                        </div>
+                        <div class="poster-footer">${footerContent}</div>
+                    </div>`;
+
+                case 'center-focus':
+                    return `<style>${baseStyles}
+                        .poster-header { background: ${t.primary}; color: ${t.headerText}; padding: 12px; text-align: center; border-bottom: 4px solid ${t.accent}; }
+                        .poster-body { flex: 1; display: flex; padding: 10px; gap: 10px; }
+                        .poster-side { width: 22%; display: flex; flex-direction: column; gap: 8px; }
+                        .poster-center { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+                        .poster-section { background: ${t.sectionBg}; border-top: 3px solid ${t.primary}; padding: 10px; }
+                        .poster-section.highlight { background: ${t.primary}; color: ${t.headerText}; border-top: 3px solid ${t.accent}; }
+                        .poster-section.highlight .poster-section-title { color: ${t.accent}; }
+                        .poster-section.highlight .results-text-box { background: rgba(255,255,255,0.95); color: #333; }
+                        .poster-section.highlight .results-text-header { background: ${t.accent}; }
+                        .poster-section.highlight .figures-box { background: rgba(255,255,255,0.95); border-color: ${t.accent}; }
+                        .poster-section-title { color: ${t.primary}; }
+                        .poster-footer { background: ${t.primary}; color: ${t.headerText}; border-top: 4px solid ${t.accent}; }
+                        .ack-refs-row { display: flex; gap: 10px; margin-top: 8px; }
+                        .ack-refs-row .poster-section { flex: 1; }
+                    </style>
+                    <div class="poster">
+                        <div class="poster-header">${logosHTML}<div class="poster-title">${d.title}</div><div class="poster-authors">${d.authors}</div></div>
+                        <div class="poster-body">
+                            <div class="poster-side">${sec(d.intro)}</div>
+                            <div class="poster-center"><div class="poster-section highlight"><div class="poster-section-title">Results</div><div class="poster-section-content">${d.results.raw ? `<div class="results-text-box"><div class="results-text-header">📝 Key Findings</div><div>${d.results.content}</div></div>` : ''}${figuresHTML ? `<div class="figures-box"><div class="figures-header">📊 Figures & Charts</div><div class="figures-grid">${figuresHTML}</div></div>` : ''}</div></div>${sec(d.conclusions)}${(d.ack.raw || d.refs.raw) ? `<div class="ack-refs-row">${d.ack.raw ? sec(d.ack) : ''}${d.refs.raw ? sec(d.refs) : ''}</div>` : ''}</div>
+                            <div class="poster-side">${sec(d.methods)}</div>
+                        </div>
+                        <div class="poster-footer">${footerContent}</div>
+                    </div>`;
+
+                case 'modular':
+                    return `<style>${baseStyles}
+                        .poster-header { background: ${t.primary}; color: ${t.headerText}; padding: 15px 20px; display: flex; align-items: center; gap: 15px; }
+                        .poster-body { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 10px; align-content: start; }
+                        .poster-section { background: ${t.sectionBg}; border: 2px solid ${t.secondary}; padding: 10px; height: fit-content; }
+                        .poster-section-title { color: ${t.primary}; border-left: 4px solid ${t.accent}; padding-left: 8px; }
+                        .poster-footer { background: ${t.primary}; color: ${t.headerText}; }
+                        .results-section { grid-column: span 3; }
+                        .conclusions-row { grid-column: span 3; }
+                        .ack-refs-row { grid-column: span 3; display: flex; gap: 8px; }
+                        .ack-refs-row .poster-section { flex: 1; }
+                    </style>
+                    <div class="poster">
+                        <div class="poster-header">${logosHTML}<div><div class="poster-title" style="font-size:20px;">${d.title}</div><div class="poster-authors">${d.authors}</div></div></div>
+                        <div class="poster-body">
+                            <div class="poster-section"><div class="poster-section-title">Introduction</div><div class="poster-section-content">${d.intro.content}</div></div>
+                            <div class="poster-section"><div class="poster-section-title">Methods</div><div class="poster-section-content">${d.methods.content}</div></div>
+                            ${resultsSection()}
+                            <div class="conclusions-row"><div class="poster-section"><div class="poster-section-title">Conclusions</div><div class="poster-section-content">${d.conclusions.content}</div></div></div>
+                            ${(d.ack.raw || d.refs.raw) ? `<div class="ack-refs-row">${d.ack.raw ? `<div class="poster-section"><div class="poster-section-title">Acknowledgements</div><div class="poster-section-content">${d.ack.content}</div></div>` : ''}${d.refs.raw ? `<div class="poster-section"><div class="poster-section-title">References</div><div class="poster-section-content">${d.refs.content}</div></div>` : ''}</div>` : ''}
+                        </div>
+                        <div class="poster-footer">${footerContent}</div>
+                    </div>`;
+
+                case 'icf':
+                default:
+                    return `<style>${baseStyles}
+                        .poster-header { background: ${t.primary}; color: ${t.headerText}; padding: 15px; text-align: center; border-bottom: 5px solid ${t.accent}; }
+                        .poster-body { flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; padding: 12px; align-content: start; }
+                        .poster-section { background: ${t.sectionBg}; border: 2px solid ${t.primary}; border-radius: 8px; padding: 10px; height: fit-content; }
+                        .poster-section-title { background: ${t.primary}; color: ${t.headerText}; padding: 6px 10px; margin: -10px -10px 10px -10px; border-radius: 6px 6px 0 0; }
+                        .poster-footer { background: ${t.primary}; color: ${t.headerText}; border-top: 5px solid ${t.accent}; }
+                        .results-section { grid-column: span 3; }
+                        .conclusions-row { grid-column: span 3; }
+                        .ack-refs-row { grid-column: span 3; display: flex; gap: 10px; }
+                        .ack-refs-row .poster-section { flex: 1; }
+                    </style>
+                    <div class="poster">
+                        <div class="poster-header">${logosHTML}<div class="poster-title">${d.title}</div><div class="poster-authors">${d.authors}</div><div class="poster-affiliations">${d.affiliations}</div></div>
+                        <div class="poster-body">${sec(d.intro)}${sec(d.methods)}${resultsSection()}<div class="conclusions-row">${sec(d.conclusions)}</div>${(d.ack.raw || d.refs.raw) ? `<div class="ack-refs-row">${d.ack.raw ? sec(d.ack) : ''}${d.refs.raw ? sec(d.refs) : ''}</div>` : ''}</div>
+                        <div class="poster-footer">${footerContent}</div>
+                    </div>`;
+            }
+        }
+
+        function updatePosterScale() {
+            const scale = document.getElementById('posterScale').value / 100;
+            document.getElementById('scaleValue').textContent = Math.round(scale * 100) + '%';
+            document.getElementById('posterFrame').style.transform = `scale(${scale})`;
+        }
+
+        async function downloadPDF() {
+            showAlert('Generating PDF...', 'info');
+            const frame = document.getElementById('posterFrame');
+            const originalTransform = frame.style.transform;
+            frame.style.transform = 'scale(1)';
+
+            try {
+                const canvas = await html2canvas(frame, { scale: 3, useCORS: true, allowTaint: true, backgroundColor: '#fff', imageTimeout: 0 });
+                const imgData = canvas.toDataURL('image/png', 1.0);
+                
+                const { jsPDF } = window.jspdf;
+                const orientation = document.getElementById('pageOrientation').value;
+                const pdf = new jsPDF({ orientation: orientation === 'portrait' ? 'p' : 'l', unit: 'mm', format: 'a4' });
+                
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                
+                const title = document.getElementById('posterTitle').value || 'poster';
+                const filename = title.substring(0, 30).replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+                pdf.save(`${filename}_poster.pdf`);
+                
+                showAlert('PDF downloaded!', 'success');
+            } catch (e) {
+                console.error(e);
+                showAlert('Error generating PDF', 'info');
+            }
+            
+            frame.style.transform = originalTransform;
+        }
+
+        async function downloadWord() {
+            showAlert('Generating Word document...', 'info');
+            
+            const frame = document.getElementById('posterFrame');
+            const content = frame.innerHTML;
+            const orientation = document.getElementById('pageOrientation').value;
+            
+            const html = `<!DOCTYPE html>
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'>
+<head><meta charset="utf-8"><title>Research Poster</title>
+<style>
+@page { size: A4 ${orientation}; margin: 0; }
+body { margin: 0; padding: 0; }
+.poster-frame { width: 100%; }
+.poster { font-family: Arial, sans-serif; }
+.poster-header { background: ${selectedTheme.primary}; color: ${selectedTheme.headerText}; padding: 20px; text-align: center; }
+.poster-header-content { text-align: center; }
+.poster-logos { text-align: center; margin-bottom: 10px; }
+.poster-logo { display: inline-block; width: 60px; height: 60px; margin: 0 10px; background: #fff; padding: 5px; border-radius: 6px; }
+.poster-logo img { max-width: 100%; max-height: 100%; }
+.poster-title { font-size: 24pt; font-weight: bold; }
+.poster-authors { font-size: 12pt; margin-top: 8px; }
+.poster-affiliations { font-size: 10pt; margin-top: 5px; opacity: 0.9; }
+.poster-body { padding: 20px; }
+.poster-section { margin: 10px 0; padding: 15px; background: ${selectedTheme.sectionBg}; border: 2px solid ${selectedTheme.primary}; }
+.poster-section-title { background: ${selectedTheme.primary}; color: ${selectedTheme.headerText}; padding: 8px; margin: -15px -15px 10px -15px; font-weight: bold; }
+.poster-footer { background: ${selectedTheme.primary}; color: ${selectedTheme.headerText}; padding: 10px; text-align: center; }
+.poster-images { text-align: center; margin: 15px 0; }
+.poster-figure { display: inline-block; margin: 10px; padding: 8px; background: #fff; border: 1px solid #ccc; }
+.poster-figure img { max-width: 300px; max-height: 200px; }
+.poster-figure-caption { font-size: 10pt; margin-top: 5px; font-style: italic; }
+</style>
+</head>
+<body>${content}</body></html>`;
+
+            const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const title = document.getElementById('posterTitle').value || 'poster';
+            a.download = `${title.substring(0, 30).replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()}_poster.doc`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showAlert('Word document downloaded!', 'success');
+        }
+
+        async function downloadImage(format) {
+            showAlert(`Generating ${format.toUpperCase()}...`, 'info');
+            const frame = document.getElementById('posterFrame');
+            const originalTransform = frame.style.transform;
+            frame.style.transform = 'scale(1)';
+
+            try {
+                const canvas = await html2canvas(frame, { scale: 3, useCORS: true, allowTaint: true, backgroundColor: '#fff', imageTimeout: 0 });
+                const link = document.createElement('a');
+                const title = document.getElementById('posterTitle').value || 'poster';
+                const filename = title.substring(0, 30).replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+                
+                link.download = `${filename}_poster.${format}`;
+                link.href = canvas.toDataURL(`image/${format}`, 1.0);
+                link.click();
+                
+                showAlert(`${format.toUpperCase()} downloaded!`, 'success');
+            } catch (e) {
+                console.error(e);
+                showAlert('Error generating image', 'info');
+            }
+            
+            frame.style.transform = originalTransform;
+        }
+
+        function printPoster() {
+            const content = document.getElementById('posterFrame').innerHTML;
+            const orientation = document.getElementById('pageOrientation').value;
+            const w = window.open('', '_blank');
+            w.document.write(`<!DOCTYPE html><html><head><title>Print Poster</title>
+                <style>
+                    @page { size: A4 ${orientation}; margin: 0; }
+                    body { margin: 0; }
+                    .poster-frame { width: 100%; height: 100%; }
+                    ${document.querySelector('style').innerHTML}
+                    @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+                </style>
+            </head><body><div class="poster-frame">${content}</div></body></html>`);
+            w.document.close();
+            setTimeout(() => w.print(), 500);
+        }
+    </script>
+</body>
+</html>
