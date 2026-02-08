@@ -369,8 +369,8 @@ Recommendation: Scale up to remaining eligible districts</textarea>
 
                     <div class="poster-preview-container">
                         <div class="poster-scale-controls">
-                            <label>Zoom: <span id="scaleValue">50%</span></label>
-                            <input type="range" id="posterScale" min="30" max="100" value="50" oninput="updatePosterScale()">
+                            <label>Zoom: <span id="scaleValue">100%</span></label>
+                            <input type="range" id="posterScale" min="30" max="100" value="100" oninput="updatePosterScale()">
                         </div>
                         <div class="download-buttons">
                             <button class="btn btn-success btn-sm" onclick="downloadPDF()">📄 Download PDF</button>
@@ -810,8 +810,7 @@ Recommendation: Scale up to remaining eligible districts</textarea>
                 .poster-section-content { font-size: ${d.bodySize}; line-height: 1.4; }
                 .poster-section-content p { margin-bottom: 5px; }
                 .poster-section-content ul { margin: 5px 0 5px 15px; }
-                .poster-logo { width: 50px; height: 50px; background: #fff; border-radius: 6px; padding: 3px; display: inline-flex; align-items: center; justify-content: center; margin: 0 5px; }
-                .poster-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+                .poster-logo { width: 50px; height: 50px; background: #fff; border-radius: 6px; padding: 3px; display: inline-block; vertical-align: middle; margin: 0 5px; }
                 
                 /* RESULTS Section - Figures FIRST, Interpretation SECOND */
                 .results-content {
@@ -907,7 +906,7 @@ Recommendation: Scale up to remaining eligible districts</textarea>
                 }
             `;
 
-            const logosHTML = d.logos.length > 0 ? d.logos.map(l => `<span class="poster-logo"><img src="${l}"></span>`).join('') : '';
+            const logosHTML = d.logos.length > 0 ? d.logos.map(l => `<span class="poster-logo" style="background-image:url(${l});background-size:contain;background-repeat:no-repeat;background-position:center;"></span>`).join('') : '';
             const footerContent = (d.contact || d.eventName) ? `<div style="padding: 8px; text-align: center; font-size: 9px;">${d.contact || ''} ${d.eventName ? ' | ' + d.eventName : ''}</div>` : '';
 
             const sec = (s, extra = '') => s.raw ? `<div class="poster-section ${extra}"><div class="poster-section-title">${s.title}</div><div class="poster-section-content">${s.content}</div></div>` : '';
@@ -1160,30 +1159,32 @@ Recommendation: Scale up to remaining eligible districts</textarea>
                         .poster-header { background: ${t.primary}; color: ${t.headerText}; padding: 12px 15px; text-align: center; border-bottom: 5px solid ${t.accent}; }
                         .poster-main { flex: 1; display: flex; overflow: hidden; }
                         .poster-sidebar { width: 28%; background: ${t.primary}; color: ${t.headerText}; padding: 12px; border-right: 5px solid ${t.accent}; display: flex; flex-direction: column; gap: 10px; }
-                        .poster-sidebar .poster-section { background: rgba(255,255,255,0.12); border: 2px solid rgba(255,255,255,0.25); border-radius: 8px; padding: 10px; }
-                        .poster-sidebar .poster-section.equal-height { flex: 1; display: flex; flex-direction: column; }
-                        .poster-sidebar .poster-section.equal-height .poster-section-content { flex: 1; }
+                        .poster-sidebar .poster-section { background: rgba(255,255,255,0.12); border: 2px solid rgba(255,255,255,0.25); border-radius: 8px; padding: 10px; flex: 1; display: flex; flex-direction: column; }
+                        .poster-sidebar .poster-section .poster-section-content { flex: 1; }
                         .poster-sidebar .poster-section-title { background: ${t.accent}; color: #000; padding: 6px 10px; margin: -10px -10px 10px -10px; border-radius: 6px 6px 0 0; font-weight: 700; }
                         .poster-sidebar .poster-section-content { color: #fff; }
                         .poster-content { flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 10px; background: ${t.bg}; }
                         .poster-section { background: ${t.sectionBg}; border: 2px solid ${t.primary}; border-radius: 8px; padding: 10px; height: fit-content; }
                         .poster-section-title { background: ${t.primary}; color: ${t.headerText}; padding: 6px 10px; margin: -10px -10px 10px -10px; border-radius: 6px 6px 0 0; }
                         .poster-footer { background: ${t.primary}; color: ${t.headerText}; border-top: 5px solid ${t.accent}; }
-                        .ack-refs-row { display: flex; gap: 10px; }
-                        .ack-refs-row .poster-section { flex: 1; }
+                        .bottom-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+                        .bottom-row .poster-section { height: 100%; display: flex; flex-direction: column; }
+                        .bottom-row .poster-section .poster-section-content { flex: 1; }
                     </style>
                     <div class="poster">
                         <div class="poster-header">${logosHTML}<div class="poster-title">${d.title}</div><div class="poster-authors">${d.authors}</div><div class="poster-affiliations">${d.affiliations}</div></div>
                         <div class="poster-main">
                             <div class="poster-sidebar">
-                                ${d.intro.raw ? `<div class="poster-section equal-height"><div class="poster-section-title">${d.intro.title}</div><div class="poster-section-content">${d.intro.content}</div></div>` : ''}
-                                ${d.methods.raw ? `<div class="poster-section equal-height"><div class="poster-section-title">${d.methods.title}</div><div class="poster-section-content">${d.methods.content}</div></div>` : ''}
-                                ${d.refs.raw ? sec(d.refs) : ''}
-                                ${d.ack.raw ? sec(d.ack) : ''}
+                                ${d.intro.raw ? `<div class="poster-section"><div class="poster-section-title">${d.intro.title}</div><div class="poster-section-content">${d.intro.content}</div></div>` : ''}
+                                ${d.methods.raw ? `<div class="poster-section"><div class="poster-section-title">${d.methods.title}</div><div class="poster-section-content">${d.methods.content}</div></div>` : ''}
                             </div>
                             <div class="poster-content">
                                 ${resultsSection()}
-                                ${sec(d.conclusions)}
+                                <div class="bottom-row">
+                                    ${d.conclusions.raw ? `<div class="poster-section"><div class="poster-section-title">${d.conclusions.title}</div><div class="poster-section-content">${d.conclusions.content}</div></div>` : ''}
+                                    ${d.refs.raw ? `<div class="poster-section"><div class="poster-section-title">${d.refs.title}</div><div class="poster-section-content">${d.refs.content}</div></div>` : ''}
+                                    ${d.ack.raw ? `<div class="poster-section"><div class="poster-section-title">${d.ack.title}</div><div class="poster-section-content">${d.ack.content}</div></div>` : ''}
+                                </div>
                             </div>
                         </div>
                         <div class="poster-footer">${footerContent}</div>
@@ -1216,14 +1217,71 @@ Recommendation: Scale up to remaining eligible districts</textarea>
             document.getElementById('posterFrame').style.transform = `scale(${scale})`;
         }
 
+        // Helper: wait for all images inside an element to fully load
+        function waitForImages(element) {
+            const imgs = element.querySelectorAll('img');
+            const promises = Array.from(imgs).map(img => {
+                if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+                return new Promise((resolve) => {
+                    img.onload = resolve;
+                    img.onerror = resolve;
+                    // Force reload for base64/data URLs that might be stuck
+                    if (img.src && img.src.startsWith('data:')) {
+                        const src = img.src;
+                        img.src = '';
+                        img.src = src;
+                    }
+                });
+            });
+            return Promise.all(promises);
+        }
+
         async function downloadPDF() {
-            showAlert('Generating PDF...', 'info');
+            showAlert('Generating PDF... Please wait.', 'info');
             const frame = document.getElementById('posterFrame');
             const originalTransform = frame.style.transform;
             frame.style.transform = 'scale(1)';
 
+            // Wait for layout to settle and all images to load
+            await new Promise(r => setTimeout(r, 500));
+            await waitForImages(frame);
+            await new Promise(r => setTimeout(r, 300));
+
             try {
-                const canvas = await html2canvas(frame, { scale: 3, useCORS: true, allowTaint: true, backgroundColor: '#fff', imageTimeout: 0 });
+                const canvas = await html2canvas(frame, { 
+                    scale: 3, 
+                    useCORS: true, 
+                    allowTaint: true, 
+                    backgroundColor: '#fff', 
+                    imageTimeout: 30000,
+                    logging: false,
+                    onclone: function(clonedDoc) {
+                        const clonedFrame = clonedDoc.getElementById('posterFrame');
+                        if (clonedFrame) {
+                            const origImgs = frame.querySelectorAll('img');
+                            const clonedImgs = clonedFrame.querySelectorAll('img');
+                            clonedImgs.forEach((cImg, i) => {
+                                if (origImgs[i]) cImg.src = origImgs[i].src;
+                            });
+                        }
+                        // Return a promise to wait for cloned images to load
+                        return new Promise(resolve => {
+                            const imgs = clonedDoc.querySelectorAll('img');
+                            let loaded = 0;
+                            const total = imgs.length;
+                            if (total === 0) return resolve();
+                            imgs.forEach(img => {
+                                if (img.complete) { loaded++; if (loaded >= total) resolve(); }
+                                else {
+                                    img.onload = () => { loaded++; if (loaded >= total) resolve(); };
+                                    img.onerror = () => { loaded++; if (loaded >= total) resolve(); };
+                                }
+                            });
+                            // Fallback timeout
+                            setTimeout(resolve, 3000);
+                        });
+                    }
+                });
                 const imgData = canvas.toDataURL('image/png', 1.0);
                 
                 const { jsPDF } = window.jspdf;
@@ -1233,7 +1291,24 @@ Recommendation: Scale up to remaining eligible districts</textarea>
                 const pdfWidth = pdf.internal.pageSize.getWidth();
                 const pdfHeight = pdf.internal.pageSize.getHeight();
                 
-                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                // Maintain aspect ratio to prevent stretching
+                const canvasRatio = canvas.width / canvas.height;
+                const pageRatio = pdfWidth / pdfHeight;
+                let imgW, imgH, offsetX = 0, offsetY = 0;
+                
+                if (canvasRatio > pageRatio) {
+                    // Canvas is wider relative to page - fit to width
+                    imgW = pdfWidth;
+                    imgH = pdfWidth / canvasRatio;
+                    offsetY = (pdfHeight - imgH) / 2;
+                } else {
+                    // Canvas is taller relative to page - fit to height
+                    imgH = pdfHeight;
+                    imgW = pdfHeight * canvasRatio;
+                    offsetX = (pdfWidth - imgW) / 2;
+                }
+                
+                pdf.addImage(imgData, 'PNG', offsetX, offsetY, imgW, imgH);
                 
                 const title = document.getElementById('posterTitle').value || 'poster';
                 const filename = title.substring(0, 30).replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
@@ -1296,13 +1371,47 @@ body { margin: 0; padding: 0; }
         }
 
         async function downloadImage(format) {
-            showAlert(`Generating ${format.toUpperCase()}...`, 'info');
+            showAlert(`Generating ${format.toUpperCase()}... Please wait.`, 'info');
             const frame = document.getElementById('posterFrame');
             const originalTransform = frame.style.transform;
             frame.style.transform = 'scale(1)';
 
+            await new Promise(r => setTimeout(r, 500));
+            await waitForImages(frame);
+            await new Promise(r => setTimeout(r, 300));
+
             try {
-                const canvas = await html2canvas(frame, { scale: 3, useCORS: true, allowTaint: true, backgroundColor: '#fff', imageTimeout: 0 });
+                const canvas = await html2canvas(frame, { 
+                    scale: 3, 
+                    useCORS: true, 
+                    allowTaint: true, 
+                    backgroundColor: '#fff', 
+                    imageTimeout: 30000,
+                    onclone: function(clonedDoc) {
+                        const clonedFrame = clonedDoc.getElementById('posterFrame');
+                        if (clonedFrame) {
+                            const origImgs = frame.querySelectorAll('img');
+                            const clonedImgs = clonedFrame.querySelectorAll('img');
+                            clonedImgs.forEach((cImg, i) => {
+                                if (origImgs[i]) cImg.src = origImgs[i].src;
+                            });
+                        }
+                        return new Promise(resolve => {
+                            const imgs = clonedDoc.querySelectorAll('img');
+                            let loaded = 0;
+                            const total = imgs.length;
+                            if (total === 0) return resolve();
+                            imgs.forEach(img => {
+                                if (img.complete) { loaded++; if (loaded >= total) resolve(); }
+                                else {
+                                    img.onload = () => { loaded++; if (loaded >= total) resolve(); };
+                                    img.onerror = () => { loaded++; if (loaded >= total) resolve(); };
+                                }
+                            });
+                            setTimeout(resolve, 3000);
+                        });
+                    }
+                });
                 const link = document.createElement('a');
                 const title = document.getElementById('posterTitle').value || 'poster';
                 const filename = title.substring(0, 30).replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
