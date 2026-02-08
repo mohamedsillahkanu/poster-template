@@ -112,6 +112,15 @@
         .poster-footer { background: var(--poster-primary, #004080); color: var(--poster-header-text, #fff); padding: 8px 20px; text-align: center; font-size: 9px; }
         
         .page-footer { background-color: #004080; color: #ffffff; padding: 20px 30px; text-align: center; font-size: 13px; line-height: 1.7; font-weight: 500; border-radius: 0 0 8px 8px; }
+
+        /* Column selector visual */
+        .col-selector { display: flex; gap: 10px; margin: 10px 0; }
+        .col-option { border: 3px solid #ddd; border-radius: 8px; padding: 10px 15px; cursor: pointer; text-align: center; background: #fff; transition: all 0.2s; min-width: 90px; }
+        .col-option:hover { border-color: #004080; background: #f0f7ff; }
+        .col-option.selected { border-color: #004080; background: #e7f3ff; box-shadow: 0 0 0 3px rgba(0,64,128,0.2); }
+        .col-option .col-preview { display: flex; gap: 3px; height: 30px; margin-bottom: 6px; justify-content: center; }
+        .col-option .col-bar { background: #004080; border-radius: 3px; flex: 1; max-width: 20px; }
+        .col-option .col-label { font-size: 11px; font-weight: 700; color: #333; }
         
         @media (max-width: 768px) {
             .form-row { grid-template-columns: 1fr; }
@@ -179,7 +188,6 @@
                             <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Upload organization logos. They will be displayed in the header area.</p>
                             
                             <div id="logosContainer">
-                                <!-- Logo uploads will be added here dynamically -->
                             </div>
                             
                             <button type="button" class="btn btn-primary btn-sm" onclick="addLogoUpload()" style="margin-top: 10px;">
@@ -229,7 +237,7 @@
                         </div>
                         
                         <div class="form-group">
-                            <label class="form-label">Results <span style="color:#888; font-weight:normal;">(150-200 words + figures)</span></label>
+                            <label class="form-label">Results / Interpretation <span style="color:#888; font-weight:normal;">(150-200 words)</span></label>
                             <textarea id="sectionResults" class="form-textarea" placeholder="Key findings with numbers. Let figures do the talking.">Key Findings:
 • 35% reduction in confirmed malaria cases post-SMC (p<0.001)
 • SMC coverage reached 92% in 2023 (up from 78% in 2020)
@@ -264,10 +272,33 @@ Recommendation: Scale up to remaining eligible districts</textarea>
                 <div id="tab-images" class="tab-content">
                     <div class="config-card">
                         <h4>📊 Results Images (Upload as many as needed)</h4>
-                        <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Upload charts, graphs, or figures for your Results section. Click "Add Another Image" to upload more.</p>
+                        <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Upload charts, graphs, or figures for your Results section. Figures will appear <strong>before</strong> the interpretation text on the poster.</p>
+                        
+                        <!-- Figure Column Selector -->
+                        <div style="background: #e7f3ff; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 2px solid #004080;">
+                            <label class="form-label" style="margin-bottom: 10px;">📐 Figure Grid Columns</label>
+                            <p style="font-size: 11px; color: #666; margin-bottom: 10px;">Choose how many columns to display your figures in:</p>
+                            <div class="col-selector" id="colSelector">
+                                <div class="col-option" onclick="selectFigureCols(1)" id="col-opt-1">
+                                    <div class="col-preview"><div class="col-bar"></div></div>
+                                    <div class="col-label">1 Column</div>
+                                </div>
+                                <div class="col-option selected" onclick="selectFigureCols(2)" id="col-opt-2">
+                                    <div class="col-preview"><div class="col-bar"></div><div class="col-bar"></div></div>
+                                    <div class="col-label">2 Columns</div>
+                                </div>
+                                <div class="col-option" onclick="selectFigureCols(3)" id="col-opt-3">
+                                    <div class="col-preview"><div class="col-bar"></div><div class="col-bar"></div><div class="col-bar"></div></div>
+                                    <div class="col-label">3 Columns</div>
+                                </div>
+                                <div class="col-option" onclick="selectFigureCols(4)" id="col-opt-4">
+                                    <div class="col-preview"><div class="col-bar"></div><div class="col-bar"></div><div class="col-bar"></div><div class="col-bar"></div></div>
+                                    <div class="col-label">4 Columns</div>
+                                </div>
+                            </div>
+                        </div>
                         
                         <div id="imageUploadsContainer">
-                            <!-- Image uploads will be added here dynamically -->
                         </div>
                         
                         <button type="button" class="btn btn-primary btn-sm" onclick="addImageUpload()" style="margin-top: 15px;">
@@ -362,7 +393,7 @@ Recommendation: Scale up to remaining eligible districts</textarea>
     </div>
 
     <script>
-        // 10 UNIQUE DESIGN TEMPLATES - Different layouts, not just colors
+        // 10 UNIQUE DESIGN TEMPLATES
         const themes = [
             {
                 id: 'classic-3col',
@@ -443,27 +474,39 @@ Recommendation: Scale up to remaining eligible districts</textarea>
                 layout: 'icf',
                 primary: '#004080', secondary: '#0056b3', accent: '#ffc107',
                 headerText: '#ffffff', bg: '#ffffff', sectionBg: '#e7f3ff', text: '#1a365d'
+            },
+            {
+                id: 'icf-sidebar',
+                name: 'ICF Left Sidebar',
+                description: 'ICF-SL branded with left sidebar',
+                layout: 'icf-sidebar-left',
+                primary: '#004080', secondary: '#0056b3', accent: '#ffc107',
+                headerText: '#ffffff', bg: '#ffffff', sectionBg: '#e7f3ff', text: '#1a365d'
             }
         ];
 
-        let selectedTheme = themes[9]; // ICF Official as default
-        let uploadedLogos = []; // Array for multiple logos
+        let selectedTheme = themes[10];
+        let uploadedLogos = [];
         let logoCounter = 0;
-        let resultImages = {}; // Dynamic object for unlimited images
+        let resultImages = {};
         let imageCounter = 0;
+        let selectedFigureCols = 2; // Default figure columns
+
+        // Figure column selector
+        function selectFigureCols(n) {
+            selectedFigureCols = n;
+            document.querySelectorAll('.col-option').forEach(el => el.classList.remove('selected'));
+            document.getElementById(`col-opt-${n}`).classList.add('selected');
+        }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             initThemeGrid();
-            // Add first logo upload slot
             addLogoUpload();
-            // Add first image upload slot
             addImageUpload();
-            // Setup word counters
             setupWordCounters();
         });
 
-        // Word count function
         function setupWordCounters() {
             const sections = [
                 { id: 'sectionIntro', countId: 'introCount', min: 100, max: 200 },
@@ -490,12 +533,11 @@ Recommendation: Scale up to remaining eligible districts</textarea>
                         }
                     };
                     textarea.addEventListener('input', updateCount);
-                    updateCount(); // Initial count
+                    updateCount();
                 }
             });
         }
 
-        // Dynamic logo upload functions
         function addLogoUpload() {
             logoCounter++;
             const container = document.getElementById('logosContainer');
@@ -530,12 +572,7 @@ Recommendation: Scale up to remaining eligible districts</textarea>
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    // Store logo data
-                    uploadedLogos[num] = {
-                        data: e.target.result,
-                        name: ''
-                    };
-                    
+                    uploadedLogos[num] = { data: e.target.result, name: '' };
                     preview.src = e.target.result;
                     preview.classList.remove('hidden');
                     label.classList.add('hidden');
@@ -554,129 +591,47 @@ Recommendation: Scale up to remaining eligible districts</textarea>
         function initThemeGrid() {
             const grid = document.getElementById('themeGrid');
             grid.innerHTML = themes.map((t, i) => {
-                // Create unique layout preview for each design
                 let previewHTML = '';
                 
                 switch(t.layout) {
                     case 'three-column':
-                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};">
-                            <div style="background:${t.primary};height:14px;"></div>
-                            <div style="flex:1;display:flex;gap:2px;padding:3px;">
-                                <div style="flex:1;background:${t.sectionBg};border:1px solid ${t.primary};"></div>
-                                <div style="flex:1;background:${t.sectionBg};border:1px solid ${t.primary};"></div>
-                                <div style="flex:1;background:${t.sectionBg};border:1px solid ${t.primary};"></div>
-                            </div>
-                            <div style="background:${t.primary};height:6px;"></div>
-                        </div>`;
+                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};"><div style="background:${t.primary};height:14px;"></div><div style="flex:1;display:flex;gap:2px;padding:3px;"><div style="flex:1;background:${t.sectionBg};border:1px solid ${t.primary};"></div><div style="flex:1;background:${t.sectionBg};border:1px solid ${t.primary};"></div><div style="flex:1;background:${t.sectionBg};border:1px solid ${t.primary};"></div></div><div style="background:${t.primary};height:6px;"></div></div>`;
                         break;
                     case 'two-column':
-                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};">
-                            <div style="background:linear-gradient(135deg,${t.primary},${t.secondary});height:16px;border-radius:0 0 8px 8px;"></div>
-                            <div style="flex:1;display:flex;gap:4px;padding:4px;">
-                                <div style="flex:1;background:${t.sectionBg};border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);"></div>
-                                <div style="flex:1;background:${t.sectionBg};border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);"></div>
-                            </div>
-                            <div style="background:linear-gradient(135deg,${t.primary},${t.secondary});height:6px;"></div>
-                        </div>`;
+                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};"><div style="background:linear-gradient(135deg,${t.primary},${t.secondary});height:16px;border-radius:0 0 8px 8px;"></div><div style="flex:1;display:flex;gap:4px;padding:4px;"><div style="flex:1;background:${t.sectionBg};border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);"></div><div style="flex:1;background:${t.sectionBg};border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.1);"></div></div><div style="background:linear-gradient(135deg,${t.primary},${t.secondary});height:6px;"></div></div>`;
                         break;
                     case 'sidebar-left':
-                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};">
-                            <div style="background:${t.primary};height:12px;"></div>
-                            <div style="flex:1;display:flex;">
-                                <div style="width:30%;background:${t.primary};"></div>
-                                <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:3px;">
-                                    <div style="background:${t.sectionBg};border-left:2px solid ${t.primary};"></div>
-                                    <div style="background:${t.sectionBg};border-left:2px solid ${t.primary};"></div>
-                                </div>
-                            </div>
-                            <div style="background:${t.primary};height:5px;"></div>
-                        </div>`;
+                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};"><div style="background:${t.primary};height:12px;"></div><div style="flex:1;display:flex;"><div style="width:30%;background:${t.primary};"></div><div style="flex:1;display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:3px;"><div style="background:${t.sectionBg};border-left:2px solid ${t.primary};"></div><div style="background:${t.sectionBg};border-left:2px solid ${t.primary};"></div></div></div><div style="background:${t.primary};height:5px;"></div></div>`;
                         break;
                     case 'sidebar-right':
-                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};">
-                            <div style="background:linear-gradient(90deg,${t.primary},${t.secondary});height:14px;"></div>
-                            <div style="flex:1;display:flex;">
-                                <div style="flex:1;display:flex;flex-direction:column;gap:2px;padding:3px;">
-                                    <div style="flex:1;background:${t.sectionBg};border-radius:4px;"></div>
-                                    <div style="flex:1;background:${t.sectionBg};border-radius:4px;"></div>
-                                </div>
-                                <div style="width:28%;background:${t.sectionBg};border-left:3px solid ${t.primary};"></div>
-                            </div>
-                            <div style="background:${t.primary};height:5px;"></div>
-                        </div>`;
+                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};"><div style="background:linear-gradient(90deg,${t.primary},${t.secondary});height:14px;"></div><div style="flex:1;display:flex;"><div style="flex:1;display:flex;flex-direction:column;gap:2px;padding:3px;"><div style="flex:1;background:${t.sectionBg};border-radius:4px;"></div><div style="flex:1;background:${t.sectionBg};border-radius:4px;"></div></div><div style="width:28%;background:${t.sectionBg};border-left:3px solid ${t.primary};"></div></div><div style="background:${t.primary};height:5px;"></div></div>`;
                         break;
                     case 'horizontal':
-                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};">
-                            <div style="background:${t.primary};height:18px;clip-path:polygon(0 0,100% 0,100% 70%,0 100%);"></div>
-                            <div style="flex:1;display:flex;flex-direction:column;gap:3px;padding:3px;">
-                                <div style="display:flex;gap:2px;flex:1;"><div style="flex:1;background:${t.sectionBg};border-left:3px solid ${t.accent};"></div><div style="flex:1;background:${t.sectionBg};border-left:3px solid ${t.accent};"></div></div>
-                                <div style="flex:1;background:${t.sectionBg};border-left:3px solid ${t.accent};"></div>
-                            </div>
-                            <div style="background:${t.primary};height:10px;clip-path:polygon(0 50%,100% 0,100% 100%,0 100%);"></div>
-                        </div>`;
+                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};"><div style="background:${t.primary};height:18px;clip-path:polygon(0 0,100% 0,100% 70%,0 100%);"></div><div style="flex:1;display:flex;flex-direction:column;gap:3px;padding:3px;"><div style="display:flex;gap:2px;flex:1;"><div style="flex:1;background:${t.sectionBg};border-left:3px solid ${t.accent};"></div><div style="flex:1;background:${t.sectionBg};border-left:3px solid ${t.accent};"></div></div><div style="flex:1;background:${t.sectionBg};border-left:3px solid ${t.accent};"></div></div><div style="background:${t.primary};height:10px;clip-path:polygon(0 50%,100% 0,100% 100%,0 100%);"></div></div>`;
                         break;
                     case 'grid-four':
-                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};">
-                            <div style="background:linear-gradient(180deg,${t.primary},${t.secondary});height:14px;border-radius:0 0 50% 50%;"></div>
-                            <div style="flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:3px;padding:4px;">
-                                <div style="background:${t.sectionBg};border:1px solid ${t.secondary};border-radius:6px;"></div>
-                                <div style="background:${t.sectionBg};border:1px solid ${t.secondary};border-radius:6px;"></div>
-                                <div style="background:${t.sectionBg};border:1px solid ${t.secondary};border-radius:6px;"></div>
-                                <div style="background:${t.sectionBg};border:1px solid ${t.secondary};border-radius:6px;"></div>
-                            </div>
-                            <div style="background:linear-gradient(0deg,${t.primary},${t.secondary});height:8px;border-radius:8px 8px 0 0;"></div>
-                        </div>`;
+                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};"><div style="background:linear-gradient(180deg,${t.primary},${t.secondary});height:14px;border-radius:0 0 50% 50%;"></div><div style="flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:3px;padding:4px;"><div style="background:${t.sectionBg};border:1px solid ${t.secondary};border-radius:6px;"></div><div style="background:${t.sectionBg};border:1px solid ${t.secondary};border-radius:6px;"></div><div style="background:${t.sectionBg};border:1px solid ${t.secondary};border-radius:6px;"></div><div style="background:${t.sectionBg};border:1px solid ${t.secondary};border-radius:6px;"></div></div><div style="background:linear-gradient(0deg,${t.primary},${t.secondary});height:8px;border-radius:8px 8px 0 0;"></div></div>`;
                         break;
                     case 'zigzag':
-                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};">
-                            <div style="background:linear-gradient(135deg,${t.primary},${t.secondary});height:14px;"></div>
-                            <div style="flex:1;display:flex;flex-direction:column;gap:3px;padding:4px;">
-                                <div style="display:flex;gap:2px;flex:1;"><div style="flex:2;background:${t.sectionBg};border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,0.1);"></div><div style="flex:1;background:${t.sectionBg};border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,0.1);"></div></div>
-                                <div style="display:flex;gap:2px;flex:1;flex-direction:row-reverse;"><div style="flex:2;background:${t.sectionBg};border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,0.1);"></div><div style="flex:1;background:${t.sectionBg};border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,0.1);"></div></div>
-                            </div>
-                            <div style="background:linear-gradient(135deg,${t.primary},${t.secondary});height:6px;"></div>
-                        </div>`;
+                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};"><div style="background:linear-gradient(135deg,${t.primary},${t.secondary});height:14px;"></div><div style="flex:1;display:flex;flex-direction:column;gap:3px;padding:4px;"><div style="display:flex;gap:2px;flex:1;"><div style="flex:2;background:${t.sectionBg};border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,0.1);"></div><div style="flex:1;background:${t.sectionBg};border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,0.1);"></div></div><div style="display:flex;gap:2px;flex:1;flex-direction:row-reverse;"><div style="flex:2;background:${t.sectionBg};border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,0.1);"></div><div style="flex:1;background:${t.sectionBg};border-radius:5px;box-shadow:0 1px 3px rgba(0,0,0,0.1);"></div></div></div><div style="background:linear-gradient(135deg,${t.primary},${t.secondary});height:6px;"></div></div>`;
                         break;
                     case 'center-focus':
-                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};">
-                            <div style="background:${t.primary};height:12px;border-bottom:2px solid ${t.accent};"></div>
-                            <div style="flex:1;display:flex;gap:2px;padding:3px;">
-                                <div style="width:22%;display:flex;flex-direction:column;gap:2px;"><div style="flex:1;background:${t.sectionBg};border-top:2px solid ${t.primary};"></div><div style="flex:1;background:${t.sectionBg};border-top:2px solid ${t.primary};"></div></div>
-                                <div style="flex:1;background:${t.primary};border-top:2px solid ${t.accent};"></div>
-                                <div style="width:22%;display:flex;flex-direction:column;gap:2px;"><div style="flex:1;background:${t.sectionBg};border-top:2px solid ${t.primary};"></div><div style="flex:1;background:${t.sectionBg};border-top:2px solid ${t.primary};"></div></div>
-                            </div>
-                            <div style="background:${t.primary};height:6px;border-top:2px solid ${t.accent};"></div>
-                        </div>`;
+                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};"><div style="background:${t.primary};height:12px;border-bottom:2px solid ${t.accent};"></div><div style="flex:1;display:flex;gap:2px;padding:3px;"><div style="width:22%;display:flex;flex-direction:column;gap:2px;"><div style="flex:1;background:${t.sectionBg};border-top:2px solid ${t.primary};"></div><div style="flex:1;background:${t.sectionBg};border-top:2px solid ${t.primary};"></div></div><div style="flex:1;background:${t.primary};border-top:2px solid ${t.accent};"></div><div style="width:22%;display:flex;flex-direction:column;gap:2px;"><div style="flex:1;background:${t.sectionBg};border-top:2px solid ${t.primary};"></div><div style="flex:1;background:${t.sectionBg};border-top:2px solid ${t.primary};"></div></div></div><div style="background:${t.primary};height:6px;border-top:2px solid ${t.accent};"></div></div>`;
                         break;
                     case 'modular':
-                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};">
-                            <div style="background:${t.primary};height:14px;"></div>
-                            <div style="flex:1;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);gap:2px;padding:3px;">
-                                <div style="grid-column:span 2;background:${t.sectionBg};border:1px solid ${t.secondary};"></div>
-                                <div style="grid-row:span 2;background:${t.sectionBg};border:1px solid ${t.secondary};"></div>
-                                <div style="background:${t.sectionBg};border:1px solid ${t.secondary};"></div>
-                                <div style="grid-column:span 2;grid-row:span 2;background:${t.sectionBg};border:1px solid ${t.secondary};"></div>
-                                <div style="background:${t.sectionBg};border:1px solid ${t.secondary};"></div>
-                            </div>
-                            <div style="background:${t.primary};height:5px;"></div>
-                        </div>`;
+                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};"><div style="background:${t.primary};height:14px;"></div><div style="flex:1;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);gap:2px;padding:3px;"><div style="grid-column:span 2;background:${t.sectionBg};border:1px solid ${t.secondary};"></div><div style="grid-row:span 2;background:${t.sectionBg};border:1px solid ${t.secondary};"></div><div style="background:${t.sectionBg};border:1px solid ${t.secondary};"></div><div style="grid-column:span 2;grid-row:span 2;background:${t.sectionBg};border:1px solid ${t.secondary};"></div><div style="background:${t.sectionBg};border:1px solid ${t.secondary};"></div></div><div style="background:${t.primary};height:5px;"></div></div>`;
+                        break;
+                    case 'icf-sidebar-left':
+                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};"><div style="background:${t.primary};height:14px;border-bottom:3px solid ${t.accent};"></div><div style="flex:1;display:flex;"><div style="width:30%;background:${t.primary};border-right:3px solid ${t.accent};"></div><div style="flex:1;display:flex;flex-direction:column;gap:2px;padding:3px;"><div style="flex:1;background:${t.sectionBg};border:1px solid ${t.primary};border-radius:4px;"></div><div style="flex:1;background:${t.sectionBg};border:1px solid ${t.primary};border-radius:4px;"></div></div></div><div style="background:${t.primary};height:6px;border-top:3px solid ${t.accent};"></div></div>`;
                         break;
                     case 'icf':
                     default:
-                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};">
-                            <div style="background:${t.primary};height:14px;border-bottom:3px solid ${t.accent};"></div>
-                            <div style="flex:1;display:flex;gap:3px;padding:4px;">
-                                <div style="flex:1;background:${t.sectionBg};border:1px solid ${t.primary};border-radius:4px;"></div>
-                                <div style="flex:1;background:${t.sectionBg};border:1px solid ${t.primary};border-radius:4px;"></div>
-                                <div style="flex:1;background:${t.sectionBg};border:1px solid ${t.primary};border-radius:4px;"></div>
-                            </div>
-                            <div style="background:${t.primary};height:6px;border-top:3px solid ${t.accent};"></div>
-                        </div>`;
+                        previewHTML = `<div style="height:100%;display:flex;flex-direction:column;background:${t.bg};"><div style="background:${t.primary};height:14px;border-bottom:3px solid ${t.accent};"></div><div style="flex:1;display:flex;gap:3px;padding:4px;"><div style="flex:1;background:${t.sectionBg};border:1px solid ${t.primary};border-radius:4px;"></div><div style="flex:1;background:${t.sectionBg};border:1px solid ${t.primary};border-radius:4px;"></div><div style="flex:1;background:${t.sectionBg};border:1px solid ${t.primary};border-radius:4px;"></div></div><div style="background:${t.primary};height:6px;border-top:3px solid ${t.accent};"></div></div>`;
                         break;
                 }
                 
                 return `
-                <div class="theme-card ${i === 9 ? 'selected' : ''}" onclick="selectTheme('${t.id}')" id="theme-${t.id}">
+                <div class="theme-card ${i === 10 ? 'selected' : ''}" onclick="selectTheme('${t.id}')" id="theme-${t.id}">
                     <div class="theme-preview" style="border-radius:4px;overflow:hidden;border:1px solid #ddd;">${previewHTML}</div>
                     <div class="theme-name">${t.name}</div>
                     <div style="font-size:9px;color:#666;">${t.description}</div>
@@ -684,7 +639,6 @@ Recommendation: Scale up to remaining eligible districts</textarea>
             `}).join('');
         }
 
-        // Dynamic image upload functions
         function addImageUpload() {
             imageCounter++;
             const container = document.getElementById('imageUploadsContainer');
@@ -734,7 +688,6 @@ Recommendation: Scale up to remaining eligible districts</textarea>
             setTimeout(() => document.getElementById('alertContainer').innerHTML = '', 4000);
         }
 
-        // Result images handling
         function handleResultImage(num) {
             const input = document.getElementById(`resultImage${num}`);
             const preview = document.getElementById(`imagePreview${num}`);
@@ -790,7 +743,6 @@ Recommendation: Scale up to remaining eligible districts</textarea>
             const titleSize = document.getElementById('titleSize').value;
             const bodySize = document.getElementById('bodySize').value;
 
-            // Get content
             const title = document.getElementById('posterTitle').value || 'Research Title';
             const authors = document.getElementById('posterAuthors').value || '';
             const affiliations = document.getElementById('posterAffiliations').value || '';
@@ -804,7 +756,7 @@ Recommendation: Scale up to remaining eligible districts</textarea>
             const ack = { title: 'Acknowledgements', content: formatContent(document.getElementById('sectionAcknowledgements').value.trim()), raw: document.getElementById('sectionAcknowledgements').value.trim() };
             const refs = { title: 'References', content: document.getElementById('sectionReferences').value.trim().replace(/\n/g, '<br>'), raw: document.getElementById('sectionReferences').value.trim() };
 
-            // Build images HTML
+            // Build images HTML - not used directly anymore, handled in layout generation
             let imagesHTML = '';
             for (let i = 1; i <= imageCounter; i++) {
                 if (resultImages[i]) {
@@ -818,7 +770,6 @@ Recommendation: Scale up to remaining eligible districts</textarea>
             }
             if (imagesHTML) imagesHTML = `<div class="poster-images">${imagesHTML}</div>`;
 
-            // Collect logos
             const logos = [];
             for (let i = 1; i <= logoCounter; i++) {
                 if (uploadedLogos[i] && uploadedLogos[i].data) {
@@ -826,15 +777,14 @@ Recommendation: Scale up to remaining eligible districts</textarea>
                 }
             }
 
-            // Update frame
             const frame = document.getElementById('posterFrame');
             frame.className = `poster-frame ${orientation}`;
 
-            // Generate layout-specific HTML
             const posterHTML = generateLayoutHTML(theme, {
                 title, authors, affiliations, contact, eventName, logos,
                 intro, methods, results, conclusions, ack, refs, imagesHTML,
-                font, titleSize, bodySize
+                font, titleSize, bodySize,
+                figureCols: selectedFigureCols
             });
 
             frame.innerHTML = posterHTML;
@@ -845,12 +795,12 @@ Recommendation: Scale up to remaining eligible districts</textarea>
             showAlert('Poster generated! Scroll down to preview.', 'success');
         }
 
-        // Generate completely different HTML layouts based on theme.layout
         function generateLayoutHTML(theme, data) {
             const t = theme;
             const d = data;
+            const figCols = d.figureCols || 2;
             
-            // Common styles
+            // Common styles - FIGURES FIRST, then interpretation
             const baseStyles = `
                 .poster { font-family: ${d.font}; background: ${t.bg}; color: ${t.text}; width: 100%; height: 100%; display: flex; flex-direction: column; }
                 .poster-title { font-size: ${d.titleSize}; font-weight: 700; }
@@ -863,51 +813,20 @@ Recommendation: Scale up to remaining eligible districts</textarea>
                 .poster-logo { width: 50px; height: 50px; background: #fff; border-radius: 6px; padding: 3px; display: inline-flex; align-items: center; justify-content: center; margin: 0 5px; }
                 .poster-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
                 
-                /* RESULTS TEXT Section */
+                /* RESULTS Section - Figures FIRST, Interpretation SECOND */
                 .results-content {
                     display: flex;
                     flex-direction: column;
-                    gap: 12px;
-                }
-                .results-row {
-                    display: flex;
-                    gap: 15px;
-                    align-items: stretch;
-                }
-                .results-row .results-text-box {
-                    flex: 1;
-                    min-width: 35%;
-                    margin-bottom: 0;
-                }
-                .results-row .figures-box {
-                    flex: 2;
-                    min-width: 55%;
-                }
-                .results-text-box { 
-                    background: #fff; 
-                    border: 2px solid ${t.primary}; 
-                    border-radius: 8px; 
-                    padding: 12px; 
-                    margin-bottom: 12px;
-                }
-                .results-text-header { 
-                    background: ${t.primary}; 
-                    color: #fff; 
-                    font-weight: 700; 
-                    font-size: 10px; 
-                    padding: 6px 10px; 
-                    margin: -12px -12px 10px -12px; 
-                    border-radius: 6px 6px 0 0; 
-                    text-transform: uppercase; 
-                    letter-spacing: 1px;
+                    gap: 10px;
                 }
                 
-                /* FIGURES Section */
+                /* FIGURES Section (appears FIRST) */
                 .figures-box { 
                     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); 
                     border: 3px solid ${t.accent}; 
                     border-radius: 8px; 
                     padding: 12px;
+                    order: 1;
                 }
                 .figures-header { 
                     background: ${t.accent}; 
@@ -923,7 +842,7 @@ Recommendation: Scale up to remaining eligible districts</textarea>
                 }
                 .figures-grid { 
                     display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                    grid-template-columns: repeat(${figCols}, 1fr);
                     gap: 12px; 
                     justify-items: stretch;
                     align-items: start;
@@ -966,12 +885,31 @@ Recommendation: Scale up to remaining eligible districts</textarea>
                     font-weight: 700;
                     color: ${t.primary};
                 }
+                
+                /* INTERPRETATION Section (appears SECOND) */
+                .results-text-box { 
+                    background: #fff; 
+                    border: 2px solid ${t.primary}; 
+                    border-radius: 8px; 
+                    padding: 12px;
+                    order: 2;
+                }
+                .results-text-header { 
+                    background: ${t.primary}; 
+                    color: #fff; 
+                    font-weight: 700; 
+                    font-size: 10px; 
+                    padding: 6px 10px; 
+                    margin: -12px -12px 10px -12px; 
+                    border-radius: 6px 6px 0 0; 
+                    text-transform: uppercase; 
+                    letter-spacing: 1px;
+                }
             `;
 
             const logosHTML = d.logos.length > 0 ? d.logos.map(l => `<span class="poster-logo"><img src="${l}"></span>`).join('') : '';
             const footerContent = (d.contact || d.eventName) ? `<div style="padding: 8px; text-align: center; font-size: 9px;">${d.contact || ''} ${d.eventName ? ' | ' + d.eventName : ''}</div>` : '';
 
-            // Helper to create section
             const sec = (s, extra = '') => s.raw ? `<div class="poster-section ${extra}"><div class="poster-section-title">${s.title}</div><div class="poster-section-content">${s.content}</div></div>` : '';
             
             // Build individual figure HTML
@@ -989,7 +927,7 @@ Recommendation: Scale up to remaining eligible districts</textarea>
                 }
             }
             
-            // Special Results section with CLEAR separate text and figures
+            // Results section: FIGURES FIRST, then INTERPRETATION
             const resultsSection = () => {
                 if (!d.results.raw && !figuresHTML) return '';
                 
@@ -997,29 +935,19 @@ Recommendation: Scale up to remaining eligible districts</textarea>
                     <div class="poster-section-title">Results</div>
                     <div class="poster-section-content results-content">`;
                 
-                // If both text and figures, show side by side
-                if (d.results.raw && figuresHTML) {
-                    html += `<div class="results-row">
-                        <div class="results-text-box">
-                            <div class="results-text-header">📝 Key Findings</div>
-                            <div>${d.results.content}</div>
-                        </div>
-                        <div class="figures-box">
-                            <div class="figures-header">📊 Figures & Charts</div>
-                            <div class="figures-grid">${figuresHTML}</div>
-                        </div>
-                    </div>`;
-                } else if (d.results.raw) {
-                    // Only text
-                    html += `<div class="results-text-box">
-                        <div class="results-text-header">📝 Key Findings</div>
-                        <div>${d.results.content}</div>
-                    </div>`;
-                } else if (figuresHTML) {
-                    // Only figures
+                // FIGURES FIRST (order: 1 in CSS)
+                if (figuresHTML) {
                     html += `<div class="figures-box">
                         <div class="figures-header">📊 Figures & Charts</div>
                         <div class="figures-grid">${figuresHTML}</div>
+                    </div>`;
+                }
+                
+                // INTERPRETATION SECOND (order: 2 in CSS)
+                if (d.results.raw) {
+                    html += `<div class="results-text-box">
+                        <div class="results-text-header">📝 Interpretation</div>
+                        <div>${d.results.content}</div>
                     </div>`;
                 }
                 
@@ -1197,7 +1125,7 @@ Recommendation: Scale up to remaining eligible districts</textarea>
                         <div class="poster-header">${logosHTML}<div class="poster-title">${d.title}</div><div class="poster-authors">${d.authors}</div></div>
                         <div class="poster-body">
                             <div class="poster-side">${sec(d.intro)}</div>
-                            <div class="poster-center"><div class="poster-section highlight"><div class="poster-section-title">Results</div><div class="poster-section-content">${d.results.raw ? `<div class="results-text-box"><div class="results-text-header">📝 Key Findings</div><div>${d.results.content}</div></div>` : ''}${figuresHTML ? `<div class="figures-box"><div class="figures-header">📊 Figures & Charts</div><div class="figures-grid">${figuresHTML}</div></div>` : ''}</div></div>${sec(d.conclusions)}${(d.ack.raw || d.refs.raw) ? `<div class="ack-refs-row">${d.ack.raw ? sec(d.ack) : ''}${d.refs.raw ? sec(d.refs) : ''}</div>` : ''}</div>
+                            <div class="poster-center"><div class="poster-section highlight"><div class="poster-section-title">Results</div><div class="poster-section-content results-content">${figuresHTML ? `<div class="figures-box"><div class="figures-header">📊 Figures & Charts</div><div class="figures-grid">${figuresHTML}</div></div>` : ''}${d.results.raw ? `<div class="results-text-box"><div class="results-text-header">📝 Interpretation</div><div>${d.results.content}</div></div>` : ''}</div></div>${sec(d.conclusions)}${(d.ack.raw || d.refs.raw) ? `<div class="ack-refs-row">${d.ack.raw ? sec(d.ack) : ''}${d.refs.raw ? sec(d.refs) : ''}</div>` : ''}</div>
                             <div class="poster-side">${sec(d.methods)}</div>
                         </div>
                         <div class="poster-footer">${footerContent}</div>
@@ -1223,6 +1151,40 @@ Recommendation: Scale up to remaining eligible districts</textarea>
                             ${resultsSection()}
                             <div class="conclusions-row"><div class="poster-section"><div class="poster-section-title">Conclusions</div><div class="poster-section-content">${d.conclusions.content}</div></div></div>
                             ${(d.ack.raw || d.refs.raw) ? `<div class="ack-refs-row">${d.ack.raw ? `<div class="poster-section"><div class="poster-section-title">Acknowledgements</div><div class="poster-section-content">${d.ack.content}</div></div>` : ''}${d.refs.raw ? `<div class="poster-section"><div class="poster-section-title">References</div><div class="poster-section-content">${d.refs.content}</div></div>` : ''}</div>` : ''}
+                        </div>
+                        <div class="poster-footer">${footerContent}</div>
+                    </div>`;
+
+                case 'icf-sidebar-left':
+                    return `<style>${baseStyles}
+                        .poster-header { background: ${t.primary}; color: ${t.headerText}; padding: 12px 15px; text-align: center; border-bottom: 5px solid ${t.accent}; }
+                        .poster-main { flex: 1; display: flex; overflow: hidden; }
+                        .poster-sidebar { width: 28%; background: ${t.primary}; color: ${t.headerText}; padding: 12px; border-right: 5px solid ${t.accent}; display: flex; flex-direction: column; gap: 10px; }
+                        .poster-sidebar .poster-section { background: rgba(255,255,255,0.12); border: 2px solid rgba(255,255,255,0.25); border-radius: 8px; padding: 10px; }
+                        .poster-sidebar .poster-section.equal-height { flex: 1; display: flex; flex-direction: column; }
+                        .poster-sidebar .poster-section.equal-height .poster-section-content { flex: 1; }
+                        .poster-sidebar .poster-section-title { background: ${t.accent}; color: #000; padding: 6px 10px; margin: -10px -10px 10px -10px; border-radius: 6px 6px 0 0; font-weight: 700; }
+                        .poster-sidebar .poster-section-content { color: #fff; }
+                        .poster-content { flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 10px; background: ${t.bg}; }
+                        .poster-section { background: ${t.sectionBg}; border: 2px solid ${t.primary}; border-radius: 8px; padding: 10px; height: fit-content; }
+                        .poster-section-title { background: ${t.primary}; color: ${t.headerText}; padding: 6px 10px; margin: -10px -10px 10px -10px; border-radius: 6px 6px 0 0; }
+                        .poster-footer { background: ${t.primary}; color: ${t.headerText}; border-top: 5px solid ${t.accent}; }
+                        .ack-refs-row { display: flex; gap: 10px; }
+                        .ack-refs-row .poster-section { flex: 1; }
+                    </style>
+                    <div class="poster">
+                        <div class="poster-header">${logosHTML}<div class="poster-title">${d.title}</div><div class="poster-authors">${d.authors}</div><div class="poster-affiliations">${d.affiliations}</div></div>
+                        <div class="poster-main">
+                            <div class="poster-sidebar">
+                                ${d.intro.raw ? `<div class="poster-section equal-height"><div class="poster-section-title">${d.intro.title}</div><div class="poster-section-content">${d.intro.content}</div></div>` : ''}
+                                ${d.methods.raw ? `<div class="poster-section equal-height"><div class="poster-section-title">${d.methods.title}</div><div class="poster-section-content">${d.methods.content}</div></div>` : ''}
+                                ${d.refs.raw ? sec(d.refs) : ''}
+                                ${d.ack.raw ? sec(d.ack) : ''}
+                            </div>
+                            <div class="poster-content">
+                                ${resultsSection()}
+                                ${sec(d.conclusions)}
+                            </div>
                         </div>
                         <div class="poster-footer">${footerContent}</div>
                     </div>`;
